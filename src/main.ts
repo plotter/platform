@@ -1,12 +1,12 @@
-import {Aurelia} from 'aurelia-framework'
+import {Aurelia} from 'aurelia-framework';
 import environment from './environment';
 
-//Configure Bluebird Promises.
-//Note: You may want to use environment-specific configuration.
-(<any>Promise).config({
+// Configure Bluebird Promises.
+// Note: You may want to use environment-specific configuration.
+(<any> Promise).config({
   warnings: {
-    wForgottenReturn: false
-  }
+    wForgottenReturn: false,
+  },
 });
 
 export function configure(aurelia: Aurelia) {
