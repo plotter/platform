@@ -6,7 +6,7 @@ import { StateProviderType } from './state-config/state-provider';
 @inject(HttpClient)
 export class PlatformStartup {
 
-    constructor(private httpClient : HttpClient) {}
+    constructor(private httpClient: HttpClient) {}
 
     public start(): Promise<StateConfig> {
 

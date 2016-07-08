@@ -9,11 +9,9 @@ describe('platform startup class', () => {
     expect(ret instanceof Promise).toBe(true);
   });
   it('resolves the promise', ((done) => {
-    console.log('begin tests...');
     let platformStartup = new PlatformStartup(new HttpClient());
     platformStartup.start()
       .then(stateConfig => {
-        console.log('in resolve...');
         expect(stateConfig.providers.length).toBe(1);
         done();
       });
