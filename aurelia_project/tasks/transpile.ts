@@ -26,9 +26,10 @@ function buildTypeScript() {
     });
   }
 
+console.log(`transpile: ${project.transpiler.dtsSource.concat(project.transpiler.source)}`);
   return gulp.src(project.transpiler.dtsSource.concat(project.transpiler.source))
     .pipe(plumber({errorHandler: notify.onError('Error: <%= error.message %>')}))
-    .pipe(changedInPlace({firstPass:true}))
+    //.pipe(changedInPlace({firstPass:true}))
     .pipe(sourcemaps.init())
     .pipe(ts(typescriptCompiler))
     .pipe(build.bundle());

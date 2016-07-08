@@ -1,25 +1,33 @@
+import { inject } from 'aurelia-framework';
+import { HttpClient } from 'aurelia-fetch-client';
 import { StateConfig } from './state-config/state-config';
 import { StateProviderType } from './state-config/state-provider';
 
-export function platformStartup(): Promise<StateConfig> {
+@inject(HttpClient)
+export class PlatformStartup {
 
-    return new Promise<StateConfig>((resolve, reject) => {
+    constructor(private httpClient : HttpClient) {}
 
-        // for now, hardwire a resolve with a state config
-        let stateConfig: StateConfig = {
-            providers: [
-                { type: StateProviderType.localStorage },
-            ],
-            readOnly: false,
-        };
+    public start(): Promise<StateConfig> {
 
-        resolve(stateConfig);
+        return new Promise<StateConfig>((resolve, reject) => {
 
-        // check if (and use) platform origin has state-config
+            // for now,, hardwire a resolve with a state config
+            let stateConfig: StateConfig = {
+                providers: [
+                    { type: StateProviderType.localStorage },
+                ],
+                readOnly: false,
+            };
 
-        // check if (and use) local storage has state-config
+            resolve(stateConfig);
 
-        // create state config in local storage
+            // check if (and use) platform origin has state-config
 
-    });
+            // check if (and use) local storage has state-config
+
+            // create state config in local storage
+
+        });
+    }
 }

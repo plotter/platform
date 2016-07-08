@@ -1,20 +1,24 @@
+import { HttpClient } from 'aurelia-fetch-client'
 import { StateConfig} from '../../../src/platform/state-config/state-config';
-import { platformStartup } from '../../../src/platform/platform-startup';
+import { PlatformStartup } from '../../../src/platform/platform-startup';
 
-describe('platform startup function', () => {
+describe('platform startup class', () => {
   it('returns a promise of type platform config', () => {
-    let ret = platformStartup();
+    let platformStartup = new PlatformStartup(new HttpClient());
+    let ret = platformStartup.start();
     expect(ret instanceof Promise).toBe(true);
   });
   it('resolves the promise', ((done) => {
-      console.log('begin tests...');
-    platformStartup().then(stateConfig => {
+    console.log('begin tests...');
+    let platformStartup = new PlatformStartup(new HttpClient());
+    platformStartup.start()
+      .then(stateConfig => {
         console.log('in resolve...');
         expect(stateConfig.providers.length).toBe(1);
         done();
-    });
+      });
   }));
-  it ('true is true', () => {
+  it('true is true', () => {
     expect(true).toBe(true);
   })
 });
