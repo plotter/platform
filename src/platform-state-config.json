@@ -1,0 +1,8 @@
+{
+    "providers": [
+        {
+            "type": "localStorage"
+        }
+    ],
+    "readOnly": false
+}

@@ -1,9 +1,71 @@
-define('app',["require", "exports"], function (require, exports) {
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+define('platform/platform-startup',["require", "exports", 'aurelia-framework', 'aurelia-fetch-client', './plotter-config'], function (require, exports, aurelia_framework_1, aurelia_fetch_client_1, plotter_config_1) {
+    "use strict";
+    var PlatformStartup = (function () {
+        function PlatformStartup(httpClient, plotterConfig) {
+            this.httpClient = httpClient;
+            this.plotterConfig = plotterConfig;
+        }
+        PlatformStartup.prototype.start = function () {
+            var _this = this;
+            return new Promise(function (resolve, reject) {
+                var sdn = _this.plotterConfig.stateDirectoryName;
+                alert("sdn: " + sdn);
+                var stateDirectory = {
+                    hosts: [
+                        { stateProviderType: 'localStorage' },
+                    ],
+                    readOnly: false,
+                };
+                resolve(stateDirectory);
+            });
+        };
+        PlatformStartup = __decorate([
+            aurelia_framework_1.inject(aurelia_fetch_client_1.HttpClient, plotter_config_1.PlotterConfig), 
+            __metadata('design:paramtypes', [aurelia_fetch_client_1.HttpClient, plotter_config_1.PlotterConfig])
+        ], PlatformStartup);
+        return PlatformStartup;
+    }());
+    exports.PlatformStartup = PlatformStartup;
+});
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+define('app',["require", "exports", 'aurelia-framework', './platform/platform-startup', './platform/plotter-config'], function (require, exports, aurelia_framework_1, platform_startup_1, plotter_config_1) {
     "use strict";
     var App = (function () {
-        function App() {
+        function App(platformStartup, plotterConfig) {
+            this.platformStartup = platformStartup;
+            this.plotterConfig = plotterConfig;
             this.message = 'Hello World!';
         }
+        App.prototype.activate = function () {
+            var _this = this;
+            this.plotterConfig.stateDirectoryName = window.plotterStateDirectoryName;
+            this.platformStartup.start()
+                .then(function (stateDirectory) {
+                _this.message = "Hello World! (started:" + stateDirectory.hosts.length + ")";
+            });
+        };
+        App = __decorate([
+            aurelia_framework_1.inject(platform_startup_1.PlatformStartup, plotter_config_1.PlotterConfig), 
+            __metadata('design:paramtypes', [platform_startup_1.PlatformStartup, plotter_config_1.PlotterConfig])
+        ], App);
         return App;
     }());
     exports.App = App;
@@ -40,59 +102,85 @@ define('main',["require", "exports", './environment'], function (require, export
     exports.configure = configure;
 });
 
-define('platform/state-config/state-provider',["require", "exports"], function (require, exports) {
-    "use strict";
-    (function (StateProviderType) {
-        StateProviderType[StateProviderType["service"] = 0] = "service";
-        StateProviderType[StateProviderType["localStorage"] = 1] = "localStorage";
-    })(exports.StateProviderType || (exports.StateProviderType = {}));
-    var StateProviderType = exports.StateProviderType;
-});
-
-define('platform/state-config/state-config',["require", "exports"], function (require, exports) {
-    "use strict";
-});
-
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
-define('platform/platform-startup',["require", "exports", 'aurelia-framework', 'aurelia-fetch-client', './state-config/state-provider'], function (require, exports, aurelia_framework_1, aurelia_fetch_client_1, state_provider_1) {
-    "use strict";
-    var PlatformStartup = (function () {
-        function PlatformStartup(httpClient) {
-            this.httpClient = httpClient;
-        }
-        PlatformStartup.prototype.start = function () {
-            return new Promise(function (resolve, reject) {
-                var stateConfig = {
-                    providers: [
-                        { type: state_provider_1.StateProviderType.localStorage },
-                    ],
-                    readOnly: false,
-                };
-                resolve(stateConfig);
-            });
-        };
-        PlatformStartup = __decorate([
-            aurelia_framework_1.inject(aurelia_fetch_client_1.HttpClient), 
-            __metadata('design:paramtypes', [aurelia_fetch_client_1.HttpClient])
-        ], PlatformStartup);
-        return PlatformStartup;
-    }());
-    exports.PlatformStartup = PlatformStartup;
-});
-
 define('resources/index',["require", "exports"], function (require, exports) {
     "use strict";
     function configure(config) {
     }
     exports.configure = configure;
+});
+
+define('platform/state/state-provider',["require", "exports"], function (require, exports) {
+    "use strict";
+    exports.StateProviderTypes = ['service', 'localStorage'];
+});
+
+define('platform/state/state-directory',["require", "exports"], function (require, exports) {
+    "use strict";
+});
+
+
+
+define("platform/state/state-provider-local-storage", [],function(){});
+
+
+
+define("platform/state/state-provider-service", [],function(){});
+
+define('../test/unit/app.spec',["require", "exports", '../../src/app', '../../src/platform/platform-startup', '../../src/platform/plotter-config', 'aurelia-fetch-client'], function (require, exports, app_1, platform_startup_1, plotter_config_1, aurelia_fetch_client_1) {
+    "use strict";
+    describe('the app', function () {
+        it('says hello', function () {
+            var httpMock = new aurelia_fetch_client_1.HttpClient();
+            httpMock.fetch = function (url) { return Promise.resolve({
+                json: function () { return []; },
+            }); };
+            var plotterConfig = new plotter_config_1.PlotterConfig();
+            expect(new app_1.App(new platform_startup_1.PlatformStartup(httpMock, plotterConfig), plotterConfig).message).toBe('Hello World!');
+        });
+        it('true is true', function () {
+            expect(true).toBe(true);
+        });
+    });
+});
+
+define('../test/unit/setup',["require", "exports", 'aurelia-pal-browser', 'aurelia-polyfills'], function (require, exports, aurelia_pal_browser_1) {
+    "use strict";
+    aurelia_pal_browser_1.initialize();
+});
+
+define('../test/unit/platform/platform-startup.spec',["require", "exports", 'aurelia-fetch-client', '../../../src/platform/platform-startup', '../../../src/platform/plotter-config'], function (require, exports, aurelia_fetch_client_1, platform_startup_1, plotter_config_1) {
+    "use strict";
+    describe('platform startup class', function () {
+        it('returns a promise of type platform config', function () {
+            var plotterConfig = new plotter_config_1.PlotterConfig();
+            var platformStartup = new platform_startup_1.PlatformStartup(new aurelia_fetch_client_1.HttpClient(), plotterConfig);
+            var ret = platformStartup.start();
+            expect(ret instanceof Promise).toBe(true);
+        });
+        it('resolves the promise', (function (done) {
+            var plotterConfig = new plotter_config_1.PlotterConfig();
+            var platformStartup = new platform_startup_1.PlatformStartup(new aurelia_fetch_client_1.HttpClient(), plotterConfig);
+            platformStartup.start()
+                .then(function (stateDirectory) {
+                expect(stateDirectory.hosts.length).toBe(1);
+                done();
+            });
+        }));
+        it('true is true', function () {
+            expect(true).toBe(true);
+        });
+    });
+});
+
+define('platform/plotter-config',["require", "exports"], function (require, exports) {
+    "use strict";
+    var PlotterConfig = (function () {
+        function PlotterConfig() {
+            this.stateDirectoryName = 'state-directory';
+        }
+        return PlotterConfig;
+    }());
+    exports.PlotterConfig = PlotterConfig;
 });
 
 define('text!app.html', ['module'], function(module) { module.exports = "<template>\n  <h1>${message}</h1>\n</template>\n"; });

@@ -1,26 +1,29 @@
 import { inject } from 'aurelia-framework';
 import { HttpClient } from 'aurelia-fetch-client';
-import { StateConfig } from './state-config/state-config';
-import { StateProviderType } from './state-config/state-provider';
+import { StateDirectory } from './state/state-directory';
+import { PlotterConfig } from './plotter-config';
 
-@inject(HttpClient)
+@inject(HttpClient, PlotterConfig)
 export class PlatformStartup {
 
-    constructor(private httpClient: HttpClient) {}
+    constructor(private httpClient: HttpClient, private plotterConfig: PlotterConfig) {}
 
-    public start(): Promise<StateConfig> {
+    public start(): Promise<StateDirectory> {
 
-        return new Promise<StateConfig>((resolve, reject) => {
+        return new Promise<StateDirectory>((resolve, reject) => {
+
+            let sdn = this.plotterConfig.stateDirectoryName;
+            alert(`sdn: ${sdn}`);
 
             // for now,, hardwire a resolve with a state config
-            let stateConfig: StateConfig = {
-                providers: [
-                    { type: StateProviderType.localStorage },
+            let stateDirectory: StateDirectory = {
+                hosts: [
+                    { stateProviderType: 'localStorage' },
                 ],
                 readOnly: false,
             };
 
-            resolve(stateConfig);
+            resolve(stateDirectory);
 
             // check if (and use) platform origin has state-config
 

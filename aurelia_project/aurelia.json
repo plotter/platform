@@ -14,7 +14,10 @@
       "./typings/**/*.d.ts",
       "./custom_typings/**/*.d.ts"
     ],
-    "source": "src\\**\\*.ts"
+    "source": [
+      "src\\**\\*.ts",
+      "test\\**\\*.ts"
+    ]
   },
   "markupProcessor": {
     "id": "none",
