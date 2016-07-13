@@ -1,6 +1,6 @@
-import { StateHost } from './state-provider';
+import { StateProvider } from './state-provider';
 
-export interface StateDirectory {
-    hosts: StateHost[];
-    readOnly: boolean;
+export class StateDirectory {
+    public stateProviders: StateProvider[];
+    public readOnly: boolean;
 }

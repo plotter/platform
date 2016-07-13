@@ -15,7 +15,7 @@ describe('platform startup class', () => {
     let platformStartup = new PlatformStartup(new HttpClient(), plotterConfig);
     platformStartup.start()
       .then(stateDirectory => {
-        expect(stateDirectory.hosts.length).toBe(1);
+        expect(stateDirectory.stateProviders.length).toBe(1);
         done();
       });
   }));
