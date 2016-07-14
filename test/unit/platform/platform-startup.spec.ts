@@ -17,6 +17,10 @@ describe('platform startup class', () => {
       .then(stateDirectory => {
         expect(stateDirectory.stateProviders.length).toBe(1);
         done();
+      })
+      .catch(reason => {
+        expect(true).toBe(false);
+        done();
       });
   }));
   it('true is true', () => {

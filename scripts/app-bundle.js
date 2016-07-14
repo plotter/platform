@@ -1,13 +1,37 @@
-define('platform/platform-contracts',["require", "exports"], function (require, exports) {
+define('platform/state/state-provider',["require", "exports"], function (require, exports) {
     "use strict";
-    exports.StateProviderTypes = ['service', 'localStorage'];
 });
 
-define('platform/state/state-directory',["require", "exports"], function (require, exports) {
+define('platform/state/state-directory',["require", "exports", './state-provider-local-storage'], function (require, exports, state_provider_local_storage_1) {
     "use strict";
     var StateDirectory = (function () {
         function StateDirectory() {
         }
+        StateDirectory.fromJSON = function (json) {
+            var stateDirectory = new StateDirectory();
+            stateDirectory.locked = json.locked;
+            stateDirectory.uniqueId = json.uniqueId;
+            stateDirectory.stateProviders = json.stateProviders.map(function (stateProviderJSON) {
+                switch (stateProviderJSON.stateProviderType) {
+                    case 'LocalStorage':
+                        var stateProvider = new state_provider_local_storage_1.StateProviderLocalStorage();
+                        stateProvider.locked = stateProviderJSON.locked;
+                        stateProvider.uniqueId = stateProviderJSON.uniqueId;
+                        stateProvider.stateProviderType = stateProviderJSON.stateProviderType;
+                        return stateProvider;
+                    default:
+                        throw new Error("provider " + stateProviderJSON.stateProviderType + " not supported.");
+                }
+            });
+            return stateDirectory;
+        };
+        StateDirectory.prototype.toJSON = function () {
+            return {
+                locked: this.locked,
+                stateProviders: this.stateProviders.map(function (stateProvider) { return stateProvider.toJSON(); }),
+                uniqueId: this.uniqueId,
+            };
+        };
         return StateDirectory;
     }());
     exports.StateDirectory = StateDirectory;
@@ -33,7 +57,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-define('platform/platform-startup',["require", "exports", 'aurelia-framework', 'aurelia-fetch-client', './state/state-directory', './state/state-provider', './plotter-config'], function (require, exports, aurelia_framework_1, aurelia_fetch_client_1, state_directory_1, state_provider_1, plotter_config_1) {
+define('platform/platform-startup',["require", "exports", 'aurelia-framework', 'aurelia-fetch-client', './state/state-directory', './plotter-config'], function (require, exports, aurelia_framework_1, aurelia_fetch_client_1, state_directory_1, plotter_config_1) {
     "use strict";
     var PlatformStartup = (function () {
         function PlatformStartup(httpClient, plotterConfig) {
@@ -45,18 +69,23 @@ define('platform/platform-startup',["require", "exports", 'aurelia-framework', '
             return new Promise(function (resolve, reject) {
                 var sdn = _this.plotterConfig.stateDirectoryName;
                 alert("sdn: " + sdn);
-                var stateDirectory = new state_directory_1.StateDirectory();
-                stateDirectory.readOnly = false;
-                stateDirectory.stateProviders = [
-                    new state_provider_1.StateProvider()
-                ];
-                resolve(stateDirectory);
-                if (sdn.toLowerCase().startsWith('service:')) { }
+                if (sdn.toLowerCase().startsWith('service:')) {
+                }
                 else if (sdn.toLowerCase().startsWith('githubgist:')) {
                     reject('githubgist not supported yet.');
                 }
-                else if (sdn.toLowerCase().startsWith('localstorage:')) { }
+                else if (sdn.toLowerCase().startsWith('localstorage:')) {
+                }
                 else {
+                    _this.httpClient.fetch(sdn + ".json")
+                        .then(function (response) { return response.json(); })
+                        .then(function (data) {
+                        var stateDirectory = state_directory_1.StateDirectory.fromJSON(data);
+                        resolve(stateDirectory);
+                    })
+                        .catch(function (reason) {
+                        reject(new Error("fetch state-dictionary2: reason: \r\n\r\n" + reason));
+                    });
                 }
             });
         };
@@ -158,17 +187,31 @@ define('platform/pak/pak-directory',["require", "exports"], function (require, e
     exports.PakDirectory = PakDirectory;
 });
 
-
-
-define("platform/pak/pak-provider-local-storage", [],function(){});
+define('platform/pak/pak-provider-local-storage',["require", "exports", './pak'], function (require, exports, pak_1) {
+    "use strict";
+    var PakProviderLocalStorage = (function () {
+        function PakProviderLocalStorage() {
+            this.locked = false;
+            this.uniqueId = 'state-provider';
+            this.getPak = function (pakId) {
+                return new pak_1.Pak();
+            };
+            this.getPaks = function () {
+                return [];
+            };
+        }
+        return PakProviderLocalStorage;
+    }());
+    exports.PakProviderLocalStorage = PakProviderLocalStorage;
+});
 
 
 
 define("platform/pak/pak-provider-service", [],function(){});
 
-
-
-define("platform/pak/pak-provider", [],function(){});
+define('platform/pak/pak-provider',["require", "exports"], function (require, exports) {
+    "use strict";
+});
 
 define('platform/state/state-provider-github-gist',["require", "exports"], function (require, exports) {
     "use strict";
@@ -180,11 +223,34 @@ define('platform/state/state-provider-github-gist',["require", "exports"], funct
     exports.StateProviderGitHubGist = StateProviderGitHubGist;
 });
 
-define('platform/state/state-provider-local-storage',["require", "exports"], function (require, exports) {
+define('platform/state/state-provider-local-storage',["require", "exports", '../pak/pak-directory', './state-session'], function (require, exports, pak_directory_1, state_session_1) {
     "use strict";
     var StateProviderLocalStorage = (function () {
         function StateProviderLocalStorage() {
+            this.locked = false;
+            this.uniqueId = 'state-provider';
+            this.stateProviderType = 'LocalStorage';
+            this.getPakDirectory = function () {
+                return new pak_directory_1.PakDirectory();
+            };
         }
+        StateProviderLocalStorage.fromJSON = function (json) {
+            var stateProvider = new StateProviderLocalStorage();
+            stateProvider.locked = json.locked;
+            stateProvider.uniqueId = json.uniqueId;
+            stateProvider.stateProviderType = json.stateProviderType;
+            return stateProvider;
+        };
+        StateProviderLocalStorage.prototype.getStateSession = function (sessionId) {
+            return new state_session_1.StateSession();
+        };
+        StateProviderLocalStorage.prototype.toJSON = function () {
+            return {
+                locked: this.locked,
+                stateProviderType: this.stateProviderType,
+                uniqueId: this.uniqueId,
+            };
+        };
         return StateProviderLocalStorage;
     }());
     exports.StateProviderLocalStorage = StateProviderLocalStorage;
@@ -198,16 +264,6 @@ define('platform/state/state-provider-service',["require", "exports"], function 
         return StateProviderService;
     }());
     exports.StateProviderService = StateProviderService;
-});
-
-define('platform/state/state-provider',["require", "exports"], function (require, exports) {
-    "use strict";
-    var StateProvider = (function () {
-        function StateProvider() {
-        }
-        return StateProvider;
-    }());
-    exports.StateProvider = StateProvider;
 });
 
 define('../test/unit/app.spec',["require", "exports", '../../src/app', '../../src/platform/platform-startup', '../../src/platform/plotter-config', 'aurelia-fetch-client'], function (require, exports, app_1, platform_startup_1, plotter_config_1, aurelia_fetch_client_1) {
@@ -248,12 +304,57 @@ define('../test/unit/platform/platform-startup.spec',["require", "exports", 'aur
                 .then(function (stateDirectory) {
                 expect(stateDirectory.stateProviders.length).toBe(1);
                 done();
+            })
+                .catch(function (reason) {
+                expect(true).toBe(false);
+                done();
             });
         }));
         it('true is true', function () {
             expect(true).toBe(true);
         });
     });
+});
+
+define('platform/state/state-session',["require", "exports"], function (require, exports) {
+    "use strict";
+    var StateSession = (function () {
+        function StateSession() {
+            this.activePaks = [];
+        }
+        return StateSession;
+    }());
+    exports.StateSession = StateSession;
+});
+
+define('platform/pak/pak',["require", "exports"], function (require, exports) {
+    "use strict";
+    var Pak = (function () {
+        function Pak() {
+        }
+        return Pak;
+    }());
+    exports.Pak = Pak;
+});
+
+define('platform/state/active-pak',["require", "exports"], function (require, exports) {
+    "use strict";
+    var ActivePak = (function () {
+        function ActivePak() {
+        }
+        return ActivePak;
+    }());
+    exports.ActivePak = ActivePak;
+});
+
+define('platform/state/view-instance',["require", "exports"], function (require, exports) {
+    "use strict";
+    var ViewInstance = (function () {
+        function ViewInstance() {
+        }
+        return ViewInstance;
+    }());
+    exports.ViewInstance = ViewInstance;
 });
 
 define('text!app.html', ['module'], function(module) { module.exports = "<template>\n  <h1>${message}</h1>\n</template>\n"; });

@@ -1,8 +1,11 @@
 {
-    "providers": [
+    "locked": true,
+    "uniqueId": "myId",
+    "stateProviders": [
         {
-            "type": "localStorage"
+            "locked": true,
+            "uniqueId": "myId",
+            "stateProviderType": "LocalStorage"
         }
-    ],
-    "readOnly": false
+    ]
 }
