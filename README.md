@@ -1,3 +1,4 @@
+[![Stories in Ready](https://badge.waffle.io/plotter/platform.svg?label=ready&title=Ready)](http://waffle.io/plotter/platform)
 # platform
 
 TODO: Explain the project
