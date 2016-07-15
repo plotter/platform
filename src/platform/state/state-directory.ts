@@ -20,11 +20,13 @@ export class StateDirectory {
                 }
 
                 case 'File':
+                {
                     let stateRepository = new StateRepositoryFile();
                     stateRepository.locked = stateRepositoryJSON.locked;
                     stateRepository.uniqueId = stateRepositoryJSON.uniqueId;
                     stateRepository.stateRepositoryType = stateRepositoryJSON.stateRepositoryType;
                     return stateRepository;
+                }
 
                 default:
                     throw new Error(`repository ${stateRepositoryJSON.stateRepositoryType} not supported.`);

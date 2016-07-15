@@ -16,18 +16,18 @@ export class StateRepositoryFile implements StateRepository {
     public uniqueId = 'state-repository';
     public stateRepositoryType: StateRepositoryType = 'File';
     public getPakDirectory = () => {
-    return new PakDirectory();
-}
+        return new PakDirectory();
+    }
     public getStateSession(sessionId) {
-    return new StateSession();
-}
+        return new StateSession();
+    }
     public toJSON(): StateRepositoryFileJSON {
-    return {
-        locked: this.locked,
-        stateRepositoryType: this.stateRepositoryType,
-        uniqueId: this.uniqueId,
-    };
-}
+        return {
+            locked: this.locked,
+            stateRepositoryType: this.stateRepositoryType,
+            uniqueId: this.uniqueId,
+        };
+    }
 }
 
 export interface StateRepositoryFileJSON {
@@ -35,3 +35,5 @@ export interface StateRepositoryFileJSON {
     uniqueId: string;
     stateRepositoryType: StateRepositoryType;
 }
+
+// 

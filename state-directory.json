@@ -4,8 +4,15 @@
     "stateRepositories": [
         {
             "locked": true,
-            "uniqueId": "myId",
-            "stateRepositoryType": "File"
+            "uniqueId": "file-repo-01",
+            "stateRepositoryType": "File",
+            "path": "state-repository-files"
+        },
+        {
+            "locked": true,
+            "uniqueId": "file-repo-02",
+            "stateRepositoryType": "File",
+            "path": "state-repository-files"
         }
     ]
 }

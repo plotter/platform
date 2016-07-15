@@ -96,18 +96,20 @@ define('platform/state/state-directory',["require", "exports", './state-reposito
                 switch (stateRepositoryJSON.stateRepositoryType) {
                     case 'LocalStorage':
                         {
-                            var stateRepository_1 = new state_repository_local_storage_1.StateRepositoryLocalStorage();
-                            stateRepository_1.locked = stateRepositoryJSON.locked;
-                            stateRepository_1.uniqueId = stateRepositoryJSON.uniqueId;
-                            stateRepository_1.stateRepositoryType = stateRepositoryJSON.stateRepositoryType;
-                            return stateRepository_1;
+                            var stateRepository = new state_repository_local_storage_1.StateRepositoryLocalStorage();
+                            stateRepository.locked = stateRepositoryJSON.locked;
+                            stateRepository.uniqueId = stateRepositoryJSON.uniqueId;
+                            stateRepository.stateRepositoryType = stateRepositoryJSON.stateRepositoryType;
+                            return stateRepository;
                         }
                     case 'File':
-                        var stateRepository = new state_repository_file_1.StateRepositoryFile();
-                        stateRepository.locked = stateRepositoryJSON.locked;
-                        stateRepository.uniqueId = stateRepositoryJSON.uniqueId;
-                        stateRepository.stateRepositoryType = stateRepositoryJSON.stateRepositoryType;
-                        return stateRepository;
+                        {
+                            var stateRepository = new state_repository_file_1.StateRepositoryFile();
+                            stateRepository.locked = stateRepositoryJSON.locked;
+                            stateRepository.uniqueId = stateRepositoryJSON.uniqueId;
+                            stateRepository.stateRepositoryType = stateRepositoryJSON.stateRepositoryType;
+                            return stateRepository;
+                        }
                     default:
                         throw new Error("repository " + stateRepositoryJSON.stateRepositoryType + " not supported.");
                 }
@@ -355,7 +357,7 @@ define('../test/unit/platform/platform-startup.spec',["require", "exports", 'aur
             var platformStartup = new platform_startup_1.PlatformStartup(httpClient, plotterConfig);
             platformStartup.start()
                 .then(function (stateDirectory) {
-                expect(stateDirectory.stateRepositories.length).toBe(1);
+                expect(stateDirectory.stateRepositories.length).toBe(2);
                 done();
             })
                 .catch(function (reason) {
