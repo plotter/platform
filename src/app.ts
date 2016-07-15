@@ -13,7 +13,7 @@ export class App {
 
     this.platformStartup.start()
     .then(stateDirectory => {
-        this.message = `Hello World! (started:${stateDirectory.stateProviders.length})`;
+        this.message = `Hello World! (started:${stateDirectory.stateRepositories.length})`;
       }
     );
   }

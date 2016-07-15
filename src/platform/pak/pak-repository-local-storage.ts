@@ -1,7 +1,7 @@
-import { PakProvider } from './pak-provider';
+import { PakRepository } from './pak-repository';
 import { Pak } from './pak';
 
-export class PakProviderLocalStorage implements PakProvider {
+export class PakRepositoryLocalStorage implements PakRepository {
     public locked = false;
     public uniqueId = 'state-provider';
     public getPak = (pakId): Pak => {

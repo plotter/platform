@@ -1,6 +1,6 @@
 import { Pak } from './pak';
 
-export interface PakProvider {
+export interface PakRepository {
     locked: boolean;
     uniqueId: string;
     getPak(pakId: string): Pak;

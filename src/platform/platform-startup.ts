@@ -1,8 +1,8 @@
 import { inject } from 'aurelia-framework';
 import { HttpClient } from 'aurelia-fetch-client';
 import { StateDirectory } from './state/state-directory';
-import { StateProvider } from './state/state-provider';
-import { StateProviderLocalStorage } from './state/state-provider-local-storage';
+import { StateRepository } from './state/state-repository';
+import { StateRepositoryLocalStorage } from './state/state-repository-local-storage';
 import { PlotterConfig } from './plotter-config';
 
 @inject(HttpClient, PlotterConfig)
@@ -11,20 +11,11 @@ export class PlatformStartup {
     constructor(private httpClient: HttpClient, private plotterConfig: PlotterConfig) { }
 
     public start(): Promise<StateDirectory> {
+        let that = this;
 
         return new Promise<StateDirectory>((resolve, reject) => {
 
             let sdn = this.plotterConfig.stateDirectoryName;
-            alert(`sdn: ${sdn}`);
-
-            // for now,, hardwire a resolve with a state config
-            // let stateDirectory = new StateDirectory();
-            // stateDirectory.locked = false;
-            // stateDirectory.stateProviders = [
-            //     new StateProviderLocalStorage(),
-            // ];
-
-            // resolve(stateDirectory);
 
             // check if sdn has prefix (service:, githubgist:myStateDir[.json], localstorage:)
             if (sdn.toLowerCase().startsWith('service:')) {
@@ -38,8 +29,11 @@ export class PlatformStartup {
                     } else {
 
                         // check if (and use) platform origin has state-directory
-                        this.httpClient.fetch(`${sdn}.json`)
-                            .then(response => response.json())
+                        // this.httpClient.baseUrl = 'http://localhost:9000/';
+                        that.httpClient.fetch(`${sdn}.json`)
+                            .then(response => {
+                                return response.json();
+                            })
                             .then(data => {
                                 let stateDirectory = StateDirectory.fromJSON(data);
                                 resolve(stateDirectory);

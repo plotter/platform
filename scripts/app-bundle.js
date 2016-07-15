@@ -1,8 +1,89 @@
+define('platform/pak/pak-directory',["require", "exports"], function (require, exports) {
+    "use strict";
+    var PakDirectory = (function () {
+        function PakDirectory() {
+        }
+        PakDirectory.fromJSON = function (json) {
+            var pakDirectory = new PakDirectory();
+            return pakDirectory;
+        };
+        PakDirectory.prototype.toJSON = function () {
+            return JSON.stringify(this);
+        };
+        return PakDirectory;
+    }());
+    exports.PakDirectory = PakDirectory;
+});
+
+define('platform/state/view-instance',["require", "exports"], function (require, exports) {
+    "use strict";
+    var ViewInstance = (function () {
+        function ViewInstance() {
+        }
+        return ViewInstance;
+    }());
+    exports.ViewInstance = ViewInstance;
+});
+
+define('platform/state/active-pak',["require", "exports"], function (require, exports) {
+    "use strict";
+    var ActivePak = (function () {
+        function ActivePak() {
+        }
+        return ActivePak;
+    }());
+    exports.ActivePak = ActivePak;
+});
+
+define('platform/state/state-session',["require", "exports"], function (require, exports) {
+    "use strict";
+    var StateSession = (function () {
+        function StateSession() {
+            this.activePaks = [];
+        }
+        return StateSession;
+    }());
+    exports.StateSession = StateSession;
+});
+
 define('platform/state/state-provider',["require", "exports"], function (require, exports) {
     "use strict";
 });
 
-define('platform/state/state-directory',["require", "exports", './state-provider-local-storage'], function (require, exports, state_provider_local_storage_1) {
+define('platform/state/state-provider-local-storage',["require", "exports", '../pak/pak-directory', './state-session'], function (require, exports, pak_directory_1, state_session_1) {
+    "use strict";
+    var StateProviderLocalStorage = (function () {
+        function StateProviderLocalStorage() {
+            this.locked = false;
+            this.uniqueId = 'state-provider';
+            this.stateProviderType = 'LocalStorage';
+            this.getPakDirectory = function () {
+                return new pak_directory_1.PakDirectory();
+            };
+        }
+        StateProviderLocalStorage.fromJSON = function (json) {
+            var stateProvider = new StateProviderLocalStorage();
+            stateProvider.locked = json.locked;
+            stateProvider.uniqueId = json.uniqueId;
+            stateProvider.stateProviderType = json.stateProviderType;
+            return stateProvider;
+        };
+        StateProviderLocalStorage.prototype.getStateSession = function (sessionId) {
+            return new state_session_1.StateSession();
+        };
+        StateProviderLocalStorage.prototype.toJSON = function () {
+            return {
+                locked: this.locked,
+                stateProviderType: this.stateProviderType,
+                uniqueId: this.uniqueId,
+            };
+        };
+        return StateProviderLocalStorage;
+    }());
+    exports.StateProviderLocalStorage = StateProviderLocalStorage;
+});
+
+define('platform/state/state-directory',["require", "exports", './state-repository-local-storage'], function (require, exports, state_repository_local_storage_1) {
     "use strict";
     var StateDirectory = (function () {
         function StateDirectory() {
@@ -11,16 +92,16 @@ define('platform/state/state-directory',["require", "exports", './state-provider
             var stateDirectory = new StateDirectory();
             stateDirectory.locked = json.locked;
             stateDirectory.uniqueId = json.uniqueId;
-            stateDirectory.stateProviders = json.stateProviders.map(function (stateProviderJSON) {
-                switch (stateProviderJSON.stateProviderType) {
+            stateDirectory.stateRepositories = json.stateRepositories.map(function (stateRepositoryJSON) {
+                switch (stateRepositoryJSON.stateRepositoryType) {
                     case 'LocalStorage':
-                        var stateProvider = new state_provider_local_storage_1.StateProviderLocalStorage();
-                        stateProvider.locked = stateProviderJSON.locked;
-                        stateProvider.uniqueId = stateProviderJSON.uniqueId;
-                        stateProvider.stateProviderType = stateProviderJSON.stateProviderType;
-                        return stateProvider;
+                        var stateRepository = new state_repository_local_storage_1.StateRepositoryLocalStorage();
+                        stateRepository.locked = stateRepositoryJSON.locked;
+                        stateRepository.uniqueId = stateRepositoryJSON.uniqueId;
+                        stateRepository.stateRepositoryType = stateRepositoryJSON.stateRepositoryType;
+                        return stateRepository;
                     default:
-                        throw new Error("provider " + stateProviderJSON.stateProviderType + " not supported.");
+                        throw new Error("repository " + stateRepositoryJSON.stateRepositoryType + " not supported.");
                 }
             });
             return stateDirectory;
@@ -28,7 +109,7 @@ define('platform/state/state-directory',["require", "exports", './state-provider
         StateDirectory.prototype.toJSON = function () {
             return {
                 locked: this.locked,
-                stateProviders: this.stateProviders.map(function (stateProvider) { return stateProvider.toJSON(); }),
+                stateRepositories: this.stateRepositories.map(function (stateRepository) { return stateRepository.toJSON(); }),
                 uniqueId: this.uniqueId,
             };
         };
@@ -66,9 +147,9 @@ define('platform/platform-startup',["require", "exports", 'aurelia-framework', '
         }
         PlatformStartup.prototype.start = function () {
             var _this = this;
+            var that = this;
             return new Promise(function (resolve, reject) {
                 var sdn = _this.plotterConfig.stateDirectoryName;
-                alert("sdn: " + sdn);
                 if (sdn.toLowerCase().startsWith('service:')) {
                 }
                 else if (sdn.toLowerCase().startsWith('githubgist:')) {
@@ -77,8 +158,10 @@ define('platform/platform-startup',["require", "exports", 'aurelia-framework', '
                 else if (sdn.toLowerCase().startsWith('localstorage:')) {
                 }
                 else {
-                    _this.httpClient.fetch(sdn + ".json")
-                        .then(function (response) { return response.json(); })
+                    that.httpClient.fetch(sdn + ".json")
+                        .then(function (response) {
+                        return response.json();
+                    })
                         .then(function (data) {
                         var stateDirectory = state_directory_1.StateDirectory.fromJSON(data);
                         resolve(stateDirectory);
@@ -120,7 +203,7 @@ define('app',["require", "exports", 'aurelia-framework', './platform/platform-st
             this.plotterConfig.stateDirectoryName = window.plotterStateDirectoryName;
             this.platformStartup.start()
                 .then(function (stateDirectory) {
-                _this.message = "Hello World! (started:" + stateDirectory.stateProviders.length + ")";
+                _this.message = "Hello World! (started:" + stateDirectory.stateRepositories.length + ")";
             });
         };
         App = __decorate([
@@ -170,21 +253,18 @@ define('resources/index',["require", "exports"], function (require, exports) {
     exports.configure = configure;
 });
 
-define('platform/pak/pak-directory',["require", "exports"], function (require, exports) {
+define('platform/pak/pak',["require", "exports"], function (require, exports) {
     "use strict";
-    var PakDirectory = (function () {
-        function PakDirectory() {
+    var Pak = (function () {
+        function Pak() {
         }
-        PakDirectory.fromJSON = function (json) {
-            var pakDirectory = new PakDirectory();
-            return pakDirectory;
-        };
-        PakDirectory.prototype.toJSON = function () {
-            return JSON.stringify(this);
-        };
-        return PakDirectory;
+        return Pak;
     }());
-    exports.PakDirectory = PakDirectory;
+    exports.Pak = Pak;
+});
+
+define('platform/pak/pak-provider',["require", "exports"], function (require, exports) {
+    "use strict";
 });
 
 define('platform/pak/pak-provider-local-storage',["require", "exports", './pak'], function (require, exports, pak_1) {
@@ -209,10 +289,6 @@ define('platform/pak/pak-provider-local-storage',["require", "exports", './pak']
 
 define("platform/pak/pak-provider-service", [],function(){});
 
-define('platform/pak/pak-provider',["require", "exports"], function (require, exports) {
-    "use strict";
-});
-
 define('platform/state/state-provider-github-gist',["require", "exports"], function (require, exports) {
     "use strict";
     var StateProviderGitHubGist = (function () {
@@ -221,39 +297,6 @@ define('platform/state/state-provider-github-gist',["require", "exports"], funct
         return StateProviderGitHubGist;
     }());
     exports.StateProviderGitHubGist = StateProviderGitHubGist;
-});
-
-define('platform/state/state-provider-local-storage',["require", "exports", '../pak/pak-directory', './state-session'], function (require, exports, pak_directory_1, state_session_1) {
-    "use strict";
-    var StateProviderLocalStorage = (function () {
-        function StateProviderLocalStorage() {
-            this.locked = false;
-            this.uniqueId = 'state-provider';
-            this.stateProviderType = 'LocalStorage';
-            this.getPakDirectory = function () {
-                return new pak_directory_1.PakDirectory();
-            };
-        }
-        StateProviderLocalStorage.fromJSON = function (json) {
-            var stateProvider = new StateProviderLocalStorage();
-            stateProvider.locked = json.locked;
-            stateProvider.uniqueId = json.uniqueId;
-            stateProvider.stateProviderType = json.stateProviderType;
-            return stateProvider;
-        };
-        StateProviderLocalStorage.prototype.getStateSession = function (sessionId) {
-            return new state_session_1.StateSession();
-        };
-        StateProviderLocalStorage.prototype.toJSON = function () {
-            return {
-                locked: this.locked,
-                stateProviderType: this.stateProviderType,
-                uniqueId: this.uniqueId,
-            };
-        };
-        return StateProviderLocalStorage;
-    }());
-    exports.StateProviderLocalStorage = StateProviderLocalStorage;
 });
 
 define('platform/state/state-provider-service',["require", "exports"], function (require, exports) {
@@ -299,14 +342,17 @@ define('../test/unit/platform/platform-startup.spec',["require", "exports", 'aur
         });
         it('resolves the promise', (function (done) {
             var plotterConfig = new plotter_config_1.PlotterConfig();
-            var platformStartup = new platform_startup_1.PlatformStartup(new aurelia_fetch_client_1.HttpClient(), plotterConfig);
+            var httpClient = new aurelia_fetch_client_1.HttpClient();
+            httpClient.baseUrl = 'http://localhost:9000/';
+            var platformStartup = new platform_startup_1.PlatformStartup(httpClient, plotterConfig);
             platformStartup.start()
                 .then(function (stateDirectory) {
-                expect(stateDirectory.stateProviders.length).toBe(1);
+                expect(stateDirectory.stateRepositories.length).toBe(1);
                 done();
             })
                 .catch(function (reason) {
                 expect(true).toBe(false);
+                alert("start failed: " + reason);
                 done();
             });
         }));
@@ -316,45 +362,83 @@ define('../test/unit/platform/platform-startup.spec',["require", "exports", 'aur
     });
 });
 
-define('platform/state/state-session',["require", "exports"], function (require, exports) {
+define('platform/state/state-repository',["require", "exports"], function (require, exports) {
     "use strict";
-    var StateSession = (function () {
-        function StateSession() {
-            this.activePaks = [];
-        }
-        return StateSession;
-    }());
-    exports.StateSession = StateSession;
 });
 
-define('platform/pak/pak',["require", "exports"], function (require, exports) {
+define('platform/state/state-repository-github-gist',["require", "exports"], function (require, exports) {
     "use strict";
-    var Pak = (function () {
-        function Pak() {
+    var StateRepositoryGitHubGist = (function () {
+        function StateRepositoryGitHubGist() {
         }
-        return Pak;
+        return StateRepositoryGitHubGist;
     }());
-    exports.Pak = Pak;
+    exports.StateRepositoryGitHubGist = StateRepositoryGitHubGist;
 });
 
-define('platform/state/active-pak',["require", "exports"], function (require, exports) {
+define('platform/state/state-repository-local-storage',["require", "exports", '../pak/pak-directory', './state-session'], function (require, exports, pak_directory_1, state_session_1) {
     "use strict";
-    var ActivePak = (function () {
-        function ActivePak() {
+    var StateRepositoryLocalStorage = (function () {
+        function StateRepositoryLocalStorage() {
+            this.locked = false;
+            this.uniqueId = 'state-repository';
+            this.stateRepositoryType = 'LocalStorage';
+            this.getPakDirectory = function () {
+                return new pak_directory_1.PakDirectory();
+            };
         }
-        return ActivePak;
+        StateRepositoryLocalStorage.fromJSON = function (json) {
+            var stateRepository = new StateRepositoryLocalStorage();
+            stateRepository.locked = json.locked;
+            stateRepository.uniqueId = json.uniqueId;
+            stateRepository.stateRepositoryType = json.stateRepositoryType;
+            return stateRepository;
+        };
+        StateRepositoryLocalStorage.prototype.getStateSession = function (sessionId) {
+            return new state_session_1.StateSession();
+        };
+        StateRepositoryLocalStorage.prototype.toJSON = function () {
+            return {
+                locked: this.locked,
+                stateRepositoryType: this.stateRepositoryType,
+                uniqueId: this.uniqueId,
+            };
+        };
+        return StateRepositoryLocalStorage;
     }());
-    exports.ActivePak = ActivePak;
+    exports.StateRepositoryLocalStorage = StateRepositoryLocalStorage;
 });
 
-define('platform/state/view-instance',["require", "exports"], function (require, exports) {
+define('platform/state/state-repository-service',["require", "exports"], function (require, exports) {
     "use strict";
-    var ViewInstance = (function () {
-        function ViewInstance() {
+    var StateRepositoryService = (function () {
+        function StateRepositoryService() {
         }
-        return ViewInstance;
+        return StateRepositoryService;
     }());
-    exports.ViewInstance = ViewInstance;
+    exports.StateRepositoryService = StateRepositoryService;
+});
+
+define('platform/pak/pak-repository',["require", "exports"], function (require, exports) {
+    "use strict";
+});
+
+define('platform/pak/pak-repository-local-storage',["require", "exports", './pak'], function (require, exports, pak_1) {
+    "use strict";
+    var PakRepositoryLocalStorage = (function () {
+        function PakRepositoryLocalStorage() {
+            this.locked = false;
+            this.uniqueId = 'state-provider';
+            this.getPak = function (pakId) {
+                return new pak_1.Pak();
+            };
+            this.getPaks = function () {
+                return [];
+            };
+        }
+        return PakRepositoryLocalStorage;
+    }());
+    exports.PakRepositoryLocalStorage = PakRepositoryLocalStorage;
 });
 
 define('text!app.html', ['module'], function(module) { module.exports = "<template>\n  <h1>${message}</h1>\n</template>\n"; });

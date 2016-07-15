@@ -1,11 +1,11 @@
 {
     "locked": true,
     "uniqueId": "myId",
-    "stateProviders": [
+    "stateRepositories": [
         {
             "locked": true,
             "uniqueId": "myId",
-            "stateProviderType": "LocalStorage"
+            "stateRepositoryType": "LocalStorage"
         }
     ]
 }

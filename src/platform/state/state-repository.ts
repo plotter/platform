@@ -1,19 +1,19 @@
 import { PakDirectory } from '../pak/pak-directory';
 import { StateSession } from './state-session';
 
-export interface StateProvider {
+export interface StateRepository {
     locked: boolean;
     uniqueId: string;
-    stateProviderType: StateProviderType;
+    stateRepositoryType: StateRepositoryType;
     getPakDirectory(): PakDirectory;
     getStateSession(sessionId: string): StateSession;
-    toJSON(): StateProviderJSON;
+    toJSON(): StateRepositoryJSON;
 }
 
-export interface StateProviderJSON {
+export interface StateRepositoryJSON {
     locked: boolean;
     uniqueId: string;
-    stateProviderType: StateProviderType;
+    stateRepositoryType: StateRepositoryType;
 }
 
-export type StateProviderType = 'LocalStorage' | 'Service' | 'GitHubGist';
+export type StateRepositoryType = 'LocalStorage' | 'Service' | 'GitHubGist';

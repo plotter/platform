@@ -12,14 +12,17 @@ describe('platform startup class', () => {
   });
   it('resolves the promise', ((done) => {
     let plotterConfig = new PlotterConfig();
-    let platformStartup = new PlatformStartup(new HttpClient(), plotterConfig);
+    let httpClient = new HttpClient();
+    httpClient.baseUrl = 'http://localhost:9000/';
+    let platformStartup = new PlatformStartup(httpClient, plotterConfig);
     platformStartup.start()
       .then(stateDirectory => {
-        expect(stateDirectory.stateProviders.length).toBe(1);
+        expect(stateDirectory.stateRepositories.length).toBe(1);
         done();
       })
       .catch(reason => {
         expect(true).toBe(false);
+        alert(`start failed: ${reason}`);
         done();
       });
   }));

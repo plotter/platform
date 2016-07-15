@@ -1,5 +1,5 @@
-import { StateProvider, StateProviderJSON  } from './state-provider';
-import { StateProviderLocalStorage } from './state-provider-local-storage';
+import { StateRepository, StateRepositoryJSON  } from './state-repository';
+import { StateRepositoryLocalStorage } from './state-repository-local-storage';
 
 export class StateDirectory {
     public static fromJSON(json: StateDirectoryJSON): StateDirectory {
@@ -7,17 +7,17 @@ export class StateDirectory {
         // assign properties...
         stateDirectory.locked = json.locked;
         stateDirectory.uniqueId = json.uniqueId;
-        stateDirectory.stateProviders = json.stateProviders.map(stateProviderJSON => {
-            switch (stateProviderJSON.stateProviderType) {
+        stateDirectory.stateRepositories = json.stateRepositories.map(stateRepositoryJSON => {
+            switch (stateRepositoryJSON.stateRepositoryType) {
                 case 'LocalStorage':
-                    let stateProvider = new StateProviderLocalStorage();
-                    stateProvider.locked = stateProviderJSON.locked;
-                    stateProvider.uniqueId = stateProviderJSON.uniqueId;
-                    stateProvider.stateProviderType = stateProviderJSON.stateProviderType;
-                    return stateProvider;
+                    let stateRepository = new StateRepositoryLocalStorage();
+                    stateRepository.locked = stateRepositoryJSON.locked;
+                    stateRepository.uniqueId = stateRepositoryJSON.uniqueId;
+                    stateRepository.stateRepositoryType = stateRepositoryJSON.stateRepositoryType;
+                    return stateRepository;
 
                 default:
-                    throw new Error(`provider ${stateProviderJSON.stateProviderType} not supported.`);
+                    throw new Error(`repository ${stateRepositoryJSON.stateRepositoryType} not supported.`);
             }
         });
         return stateDirectory;
@@ -25,12 +25,12 @@ export class StateDirectory {
 
     public locked: boolean;
     public uniqueId: string;
-    public stateProviders: StateProvider[];
+    public stateRepositories: StateRepository[];
 
     public toJSON(): StateDirectoryJSON {
         return {
             locked: this.locked,
-            stateProviders: this.stateProviders.map(stateProvider => stateProvider.toJSON()),
+            stateRepositories: this.stateRepositories.map(stateRepository => stateRepository.toJSON()),
             uniqueId: this.uniqueId,
         };
     }
@@ -39,5 +39,5 @@ export class StateDirectory {
 export interface StateDirectoryJSON {
     locked: boolean;
     uniqueId: string;
-    stateProviders: StateProviderJSON[];
+    stateRepositories: StateRepositoryJSON[];
 }
