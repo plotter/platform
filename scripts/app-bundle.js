@@ -488,5 +488,21 @@ define('platform/state/state-repository-file',["require", "exports", '../pak/pak
     exports.StateRepositoryFile = StateRepositoryFile;
 });
 
+
+
+define("state-repository/state-repository-chooser", [],function(){});
+
+
+
+define("state/state-repository-chooser", [],function(){});
+
+
+
+define("state/state-session-chooser", [],function(){});
+
 define('text!app.html', ['module'], function(module) { module.exports = "<template>\n  <h1>${message}</h1>\n</template>\n"; });
+define('text!state-repository-chooser/state-repository-chooser.html', ['module'], function(module) { module.exports = ""; });
+define('text!state-repository/state-repository-chooser.html', ['module'], function(module) { module.exports = ""; });
+define('text!state/state-repository-chooser.html', ['module'], function(module) { module.exports = ""; });
+define('text!state/state-session-chooser.html', ['module'], function(module) { module.exports = ""; });
 //# sourceMappingURL=app-bundle.js.map
