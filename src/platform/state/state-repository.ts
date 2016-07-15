@@ -16,4 +16,4 @@ export interface StateRepositoryJSON {
     stateRepositoryType: StateRepositoryType;
 }
 
-export type StateRepositoryType = 'LocalStorage' | 'Service' | 'GitHubGist';
+export type StateRepositoryType = 'LocalStorage' | 'Service' | 'GitHubGist' | 'File';

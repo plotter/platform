@@ -83,7 +83,7 @@ define('platform/state/state-provider-local-storage',["require", "exports", '../
     exports.StateProviderLocalStorage = StateProviderLocalStorage;
 });
 
-define('platform/state/state-directory',["require", "exports", './state-repository-local-storage'], function (require, exports, state_repository_local_storage_1) {
+define('platform/state/state-directory',["require", "exports", './state-repository-local-storage', './state-repository-file'], function (require, exports, state_repository_local_storage_1, state_repository_file_1) {
     "use strict";
     var StateDirectory = (function () {
         function StateDirectory() {
@@ -95,7 +95,15 @@ define('platform/state/state-directory',["require", "exports", './state-reposito
             stateDirectory.stateRepositories = json.stateRepositories.map(function (stateRepositoryJSON) {
                 switch (stateRepositoryJSON.stateRepositoryType) {
                     case 'LocalStorage':
-                        var stateRepository = new state_repository_local_storage_1.StateRepositoryLocalStorage();
+                        {
+                            var stateRepository_1 = new state_repository_local_storage_1.StateRepositoryLocalStorage();
+                            stateRepository_1.locked = stateRepositoryJSON.locked;
+                            stateRepository_1.uniqueId = stateRepositoryJSON.uniqueId;
+                            stateRepository_1.stateRepositoryType = stateRepositoryJSON.stateRepositoryType;
+                            return stateRepository_1;
+                        }
+                    case 'File':
+                        var stateRepository = new state_repository_file_1.StateRepositoryFile();
                         stateRepository.locked = stateRepositoryJSON.locked;
                         stateRepository.uniqueId = stateRepositoryJSON.uniqueId;
                         stateRepository.stateRepositoryType = stateRepositoryJSON.stateRepositoryType;
@@ -439,6 +447,43 @@ define('platform/pak/pak-repository-local-storage',["require", "exports", './pak
         return PakRepositoryLocalStorage;
     }());
     exports.PakRepositoryLocalStorage = PakRepositoryLocalStorage;
+});
+
+
+
+define("platform/state/state-repository-server-file", [],function(){});
+
+define('platform/state/state-repository-file',["require", "exports", '../pak/pak-directory', './state-session'], function (require, exports, pak_directory_1, state_session_1) {
+    "use strict";
+    var StateRepositoryFile = (function () {
+        function StateRepositoryFile() {
+            this.locked = false;
+            this.uniqueId = 'state-repository';
+            this.stateRepositoryType = 'File';
+            this.getPakDirectory = function () {
+                return new pak_directory_1.PakDirectory();
+            };
+        }
+        StateRepositoryFile.fromJSON = function (json) {
+            var stateRepository = new StateRepositoryFile();
+            stateRepository.locked = json.locked;
+            stateRepository.uniqueId = json.uniqueId;
+            stateRepository.stateRepositoryType = json.stateRepositoryType;
+            return stateRepository;
+        };
+        StateRepositoryFile.prototype.getStateSession = function (sessionId) {
+            return new state_session_1.StateSession();
+        };
+        StateRepositoryFile.prototype.toJSON = function () {
+            return {
+                locked: this.locked,
+                stateRepositoryType: this.stateRepositoryType,
+                uniqueId: this.uniqueId,
+            };
+        };
+        return StateRepositoryFile;
+    }());
+    exports.StateRepositoryFile = StateRepositoryFile;
 });
 
 define('text!app.html', ['module'], function(module) { module.exports = "<template>\n  <h1>${message}</h1>\n</template>\n"; });

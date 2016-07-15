@@ -5,7 +5,7 @@
         {
             "locked": true,
             "uniqueId": "myId",
-            "stateRepositoryType": "LocalStorage"
+            "stateRepositoryType": "File"
         }
     ]
 }

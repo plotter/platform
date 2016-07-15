@@ -1,5 +1,6 @@
 import { StateRepository, StateRepositoryJSON  } from './state-repository';
 import { StateRepositoryLocalStorage } from './state-repository-local-storage';
+import { StateRepositoryFile } from './state-repository-file';
 
 export class StateDirectory {
     public static fromJSON(json: StateDirectoryJSON): StateDirectory {
@@ -10,7 +11,16 @@ export class StateDirectory {
         stateDirectory.stateRepositories = json.stateRepositories.map(stateRepositoryJSON => {
             switch (stateRepositoryJSON.stateRepositoryType) {
                 case 'LocalStorage':
+                {
                     let stateRepository = new StateRepositoryLocalStorage();
+                    stateRepository.locked = stateRepositoryJSON.locked;
+                    stateRepository.uniqueId = stateRepositoryJSON.uniqueId;
+                    stateRepository.stateRepositoryType = stateRepositoryJSON.stateRepositoryType;
+                    return stateRepository;
+                }
+
+                case 'File':
+                    let stateRepository = new StateRepositoryFile();
                     stateRepository.locked = stateRepositoryJSON.locked;
                     stateRepository.uniqueId = stateRepositoryJSON.uniqueId;
                     stateRepository.stateRepositoryType = stateRepositoryJSON.stateRepositoryType;
