@@ -1,6 +1,17 @@
 <template>
-    <h1> Session Chooser </h1>
-    <h2> Plotter Host ID: ${stateRepoUniqueId} </h2>
-    <p> ${message} </p>
-    <p> Session List: <span repeat.for="key of sessionList">${key}, </span></p>
+    <require from="./state-repository-chooser.css"></require>
+    <div class="header">
+        <h1>Session Chooser for ${stateRepoUniqueId} </h1>
+        <p>${message} </p>
+        <div class="input-group input-group-lg">
+            <select class="form-control" value.bind="sessionId">
+                <option value.bind="s" repeat.for="s of sessionList">${s}</option>
+            </select>
+            <span class="input-group-addon" click.trigger="choose()">
+                <i class="fa fa-arrow-circle-right fa-lg"></i>
+            </span>
+        </div>
+
+    </div>
+    <div class="body"></div>
 </template>
