@@ -58,7 +58,7 @@ define('platform/state/state-repository-local-storage',["require", "exports", '.
             this.uniqueId = 'state-repository';
             this.stateRepositoryType = 'LocalStorage';
             this.getPakDirectory = function () {
-                return new pak_directory_1.PakDirectory();
+                return Promise.resolve(new pak_directory_1.PakDirectory());
             };
         }
         StateRepositoryLocalStorage.fromJSON = function (json) {
@@ -69,7 +69,12 @@ define('platform/state/state-repository-local-storage',["require", "exports", '.
             return stateRepository;
         };
         StateRepositoryLocalStorage.prototype.getStateSession = function (sessionId) {
-            return new state_session_1.StateSession();
+            return Promise.resolve(new state_session_1.StateSession());
+        };
+        StateRepositoryLocalStorage.prototype.getSessionList = function () {
+            return new Promise(function (resolve, reject) {
+                resolve(['A', 'B', 'C']);
+            });
         };
         StateRepositoryLocalStorage.prototype.toJSON = function () {
             return {
@@ -91,7 +96,7 @@ define('platform/state/state-repository-file',["require", "exports", '../pak/pak
             this.uniqueId = 'state-repository';
             this.stateRepositoryType = 'File';
             this.getPakDirectory = function () {
-                return new pak_directory_1.PakDirectory();
+                return Promise.resolve(new pak_directory_1.PakDirectory());
             };
         }
         StateRepositoryFile.fromJSON = function (json) {
@@ -102,7 +107,12 @@ define('platform/state/state-repository-file',["require", "exports", '../pak/pak
             return stateRepository;
         };
         StateRepositoryFile.prototype.getStateSession = function (sessionId) {
-            return new state_session_1.StateSession();
+            return Promise.resolve(new state_session_1.StateSession());
+        };
+        StateRepositoryFile.prototype.getSessionList = function () {
+            return new Promise(function (resolve, reject) {
+                resolve(['A', 'B', 'C']);
+            });
         };
         StateRepositoryFile.prototype.toJSON = function () {
             return {
@@ -361,12 +371,18 @@ define('state/state-session-chooser',["require", "exports", 'aurelia-framework',
         function StateSessionChooser(stateDirectory) {
             this.stateDirectory = stateDirectory;
             this.message = 'no message.';
+            this.sessionList = [];
         }
         StateSessionChooser.prototype.activate = function (params) {
+            var that = this;
             this.stateRepoUniqueId = params.uniqueId;
             this.stateRepo = this.stateDirectory.getStateRepository(this.stateRepoUniqueId);
             if (this.stateRepo) {
                 this.message = 'found repo';
+                this.stateRepo.getSessionList()
+                    .then(function (sessionList) {
+                    that.sessionList = sessionList;
+                });
             }
             else {
                 this.message = 'did not find repo';
@@ -494,7 +510,7 @@ define('../test/unit/platform/platform-startup.spec',["require", "exports", 'aur
 
 define('text!app.html', ['module'], function(module) { module.exports = "<template>\n  <require from=\"app.css\"></require>\n  <router-view></router-view>\n</template>\n"; });
 define('text!state/state-repository-chooser.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./state-repository-chooser.css\"></require>\r\n    <div class=\"header\">\r\n        <h1>Plotter Host</h1>\r\n        <h3>Choose Plotter Host:</h3>\r\n        <div class=\"input-group input-group-lg\">\r\n            <select class=\"form-control\" value.bind=\"state\">\r\n                <option model.bind=\"ss\" repeat.for=\"ss of states\">${ss.uniqueId}</option>\r\n            </select>\r\n            <span class=\"input-group-addon\" click.trigger=\"choose()\">\r\n                <i class=\"fa fa-arrow-circle-right fa-lg\"></i>\r\n            </span>\r\n        </div>\r\n    </div>\r\n    <div class=\"body\"></div>\r\n</template>"; });
-define('text!state/state-session-chooser.html', ['module'], function(module) { module.exports = "<template>\r\n    <h1> Session Chooser </h1>\r\n    <h2> Plotter Host ID: ${stateRepoUniqueId} </h2>\r\n    <p> ${message}\r\n</template>\r\n"; });
+define('text!state/state-session-chooser.html', ['module'], function(module) { module.exports = "<template>\r\n    <h1> Session Chooser </h1>\r\n    <h2> Plotter Host ID: ${stateRepoUniqueId} </h2>\r\n    <p> ${message} </p>\r\n    <p> Session List: <span repeat.for=\"key of sessionList\">${key}, </span></p>\r\n</template>\r\n"; });
 define('text!app.css', ['module'], function(module) { module.exports = "router-view {\n  flex: 1 0;\n  display: flex;\n  flex-direction: column;\n}\n"; });
 define('text!state/state-repository-chooser.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  flex: 1 1;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
 //# sourceMappingURL=app-bundle.js.map

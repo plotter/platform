@@ -16,11 +16,16 @@ export class StateRepositoryLocalStorage implements StateRepository {
     public uniqueId = 'state-repository';
     public stateRepositoryType: StateRepositoryType = 'LocalStorage';
     public getPakDirectory = () => {
-    return new PakDirectory();
-}
+        return Promise.resolve<PakDirectory>(new PakDirectory());
+    }
     public getStateSession(sessionId) {
-    return new StateSession();
-}
+        return Promise.resolve<StateSession>(new StateSession());
+    }
+    public getSessionList() {
+        return new Promise<string[]>((resolve, reject) => {
+            resolve(['A', 'B', 'C']);
+        });
+    }
     public toJSON(): StateRepositoryLocalStorageJSON {
     return {
         locked: this.locked,

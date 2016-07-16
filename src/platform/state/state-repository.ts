@@ -5,8 +5,9 @@ export interface StateRepository {
     locked: boolean;
     uniqueId: string;
     stateRepositoryType: StateRepositoryType;
-    getPakDirectory(): PakDirectory;
-    getStateSession(sessionId: string): StateSession;
+    getPakDirectory(): Promise<PakDirectory>;
+    getStateSession(sessionId: string): Promise<StateSession>;
+    getSessionList(): Promise<string[]>;
     toJSON(): StateRepositoryJSON;
 }
 

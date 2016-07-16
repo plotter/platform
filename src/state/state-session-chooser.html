@@ -1,5 +1,6 @@
 <template>
     <h1> Session Chooser </h1>
     <h2> Plotter Host ID: ${stateRepoUniqueId} </h2>
-    <p> ${message}
+    <p> ${message} </p>
+    <p> Session List: <span repeat.for="key of sessionList">${key}, </span></p>
 </template>
