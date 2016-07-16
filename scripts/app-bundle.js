@@ -149,6 +149,15 @@ define('platform/state/state-directory',["require", "exports", './state-reposito
             });
             return stateDirectory;
         };
+        StateDirectory.prototype.getStateRepository = function (uniqueId) {
+            var repoMatch = null;
+            this.stateRepositories.forEach(function (repo) {
+                if (repo.uniqueId === uniqueId) {
+                    repoMatch = repo;
+                }
+            });
+            return repoMatch;
+        };
         StateDirectory.prototype.toJSON = function () {
             return {
                 locked: this.locked,
@@ -316,40 +325,61 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-define('state/state-repository-chooser',["require", "exports", 'aurelia-framework', '../platform/state/state-directory'], function (require, exports, aurelia_framework_1, state_directory_1) {
+define('state/state-repository-chooser',["require", "exports", 'aurelia-framework', 'aurelia-router', '../platform/state/state-directory'], function (require, exports, aurelia_framework_1, aurelia_router_1, state_directory_1) {
     "use strict";
     var StateRepositoryChooser = (function () {
-        function StateRepositoryChooser(stateDirectory) {
+        function StateRepositoryChooser(stateDirectory, router) {
             var _this = this;
             this.stateDirectory = stateDirectory;
+            this.router = router;
             this.choose = function () {
-                alert("chose: " + _this.state.uniqueId);
+                _this.router.navigateToRoute('session', { uniqueId: _this.state.uniqueId });
             };
             this.states = stateDirectory.stateRepositories;
         }
-        StateRepositoryChooser.prototype.activate = function (params) {
-        };
-        StateRepositoryChooser.prototype.stringify = function (o) {
-            var props = Object.getOwnPropertyNames(o);
-            if (!props.length) {
-                return 'no props';
-            }
-            return props
-                .map(function (name) { return ("name: " + name + ", value: " + o[name]); })
-                .join('\r\n');
-        };
         StateRepositoryChooser = __decorate([
-            aurelia_framework_1.inject(state_directory_1.StateDirectory), 
-            __metadata('design:paramtypes', [state_directory_1.StateDirectory])
+            aurelia_framework_1.inject(state_directory_1.StateDirectory, aurelia_router_1.Router), 
+            __metadata('design:paramtypes', [state_directory_1.StateDirectory, aurelia_router_1.Router])
         ], StateRepositoryChooser);
         return StateRepositoryChooser;
     }());
     exports.StateRepositoryChooser = StateRepositoryChooser;
 });
 
-
-
-define("state/state-session-chooser", [],function(){});
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+define('state/state-session-chooser',["require", "exports", 'aurelia-framework', '../platform/state/state-directory'], function (require, exports, aurelia_framework_1, state_directory_1) {
+    "use strict";
+    var StateSessionChooser = (function () {
+        function StateSessionChooser(stateDirectory) {
+            this.stateDirectory = stateDirectory;
+            this.message = 'no message.';
+        }
+        StateSessionChooser.prototype.activate = function (params) {
+            this.stateRepoUniqueId = params.uniqueId;
+            this.stateRepo = this.stateDirectory.getStateRepository(this.stateRepoUniqueId);
+            if (this.stateRepo) {
+                this.message = 'found repo';
+            }
+            else {
+                this.message = 'did not find repo';
+            }
+        };
+        StateSessionChooser = __decorate([
+            aurelia_framework_1.inject(state_directory_1.StateDirectory), 
+            __metadata('design:paramtypes', [state_directory_1.StateDirectory])
+        ], StateSessionChooser);
+        return StateSessionChooser;
+    }());
+    exports.StateSessionChooser = StateSessionChooser;
+});
 
 
 
@@ -464,7 +494,7 @@ define('../test/unit/platform/platform-startup.spec',["require", "exports", 'aur
 
 define('text!app.html', ['module'], function(module) { module.exports = "<template>\n  <require from=\"app.css\"></require>\n  <router-view></router-view>\n</template>\n"; });
 define('text!state/state-repository-chooser.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./state-repository-chooser.css\"></require>\r\n    <div class=\"header\">\r\n        <h1>Plotter Host</h1>\r\n        <h3>Choose Plotter Host:</h3>\r\n        <div class=\"input-group input-group-lg\">\r\n            <select class=\"form-control\" value.bind=\"state\">\r\n                <option model.bind=\"ss\" repeat.for=\"ss of states\">${ss.uniqueId}</option>\r\n            </select>\r\n            <span class=\"input-group-addon\" click.trigger=\"choose()\">\r\n                <i class=\"fa fa-arrow-circle-right fa-lg\"></i>\r\n            </span>\r\n        </div>\r\n    </div>\r\n    <div class=\"body\"></div>\r\n</template>"; });
-define('text!state/state-session-chooser.html', ['module'], function(module) { module.exports = "<template>\r\n    <h1> State Chooser </h1>\r\n</template>\r\n"; });
+define('text!state/state-session-chooser.html', ['module'], function(module) { module.exports = "<template>\r\n    <h1> Session Chooser </h1>\r\n    <h2> Plotter Host ID: ${stateRepoUniqueId} </h2>\r\n    <p> ${message}\r\n</template>\r\n"; });
 define('text!app.css', ['module'], function(module) { module.exports = "router-view {\n  flex: 1 0;\n  display: flex;\n  flex-direction: column;\n}\n"; });
 define('text!state/state-repository-chooser.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  flex: 1 1;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
 //# sourceMappingURL=app-bundle.js.map

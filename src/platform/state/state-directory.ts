@@ -39,6 +39,16 @@ export class StateDirectory {
     public uniqueId: string;
     public stateRepositories: StateRepository[];
 
+    public getStateRepository(uniqueId: string) {
+        let repoMatch = null;
+        this.stateRepositories.forEach(repo => {
+            if (repo.uniqueId === uniqueId) {
+                repoMatch = repo;
+            }
+        });
+        return repoMatch;
+    }
+
     public toJSON(): StateDirectoryJSON {
         return {
             locked: this.locked,
