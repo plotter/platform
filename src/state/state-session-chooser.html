@@ -1,8 +1,9 @@
 <template>
     <require from="./state-repository-chooser.css"></require>
     <div class="header">
-        <h1>Session Chooser for ${stateRepoUniqueId} </h1>
+        <h1>Session Chooser (${stateRepoUniqueId}) </h1>
         <p>${message} </p>
+        <h3>Choose Session:</h3>
         <div class="input-group input-group-lg">
             <select class="form-control" value.bind="sessionId">
                 <option value.bind="s" repeat.for="s of sessionList">${s}</option>
