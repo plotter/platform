@@ -46,41 +46,74 @@ define('platform/state/state-session',["require", "exports"], function (require,
     exports.StateSession = StateSession;
 });
 
-define('platform/state/state-provider',["require", "exports"], function (require, exports) {
+define('platform/state/state-repository',["require", "exports"], function (require, exports) {
     "use strict";
 });
 
-define('platform/state/state-provider-local-storage',["require", "exports", '../pak/pak-directory', './state-session'], function (require, exports, pak_directory_1, state_session_1) {
+define('platform/state/state-repository-local-storage',["require", "exports", '../pak/pak-directory', './state-session'], function (require, exports, pak_directory_1, state_session_1) {
     "use strict";
-    var StateProviderLocalStorage = (function () {
-        function StateProviderLocalStorage() {
+    var StateRepositoryLocalStorage = (function () {
+        function StateRepositoryLocalStorage() {
             this.locked = false;
-            this.uniqueId = 'state-provider';
-            this.stateProviderType = 'LocalStorage';
+            this.uniqueId = 'state-repository';
+            this.stateRepositoryType = 'LocalStorage';
             this.getPakDirectory = function () {
                 return new pak_directory_1.PakDirectory();
             };
         }
-        StateProviderLocalStorage.fromJSON = function (json) {
-            var stateProvider = new StateProviderLocalStorage();
-            stateProvider.locked = json.locked;
-            stateProvider.uniqueId = json.uniqueId;
-            stateProvider.stateProviderType = json.stateProviderType;
-            return stateProvider;
+        StateRepositoryLocalStorage.fromJSON = function (json) {
+            var stateRepository = new StateRepositoryLocalStorage();
+            stateRepository.locked = json.locked;
+            stateRepository.uniqueId = json.uniqueId;
+            stateRepository.stateRepositoryType = json.stateRepositoryType;
+            return stateRepository;
         };
-        StateProviderLocalStorage.prototype.getStateSession = function (sessionId) {
+        StateRepositoryLocalStorage.prototype.getStateSession = function (sessionId) {
             return new state_session_1.StateSession();
         };
-        StateProviderLocalStorage.prototype.toJSON = function () {
+        StateRepositoryLocalStorage.prototype.toJSON = function () {
             return {
                 locked: this.locked,
-                stateProviderType: this.stateProviderType,
+                stateRepositoryType: this.stateRepositoryType,
                 uniqueId: this.uniqueId,
             };
         };
-        return StateProviderLocalStorage;
+        return StateRepositoryLocalStorage;
     }());
-    exports.StateProviderLocalStorage = StateProviderLocalStorage;
+    exports.StateRepositoryLocalStorage = StateRepositoryLocalStorage;
+});
+
+define('platform/state/state-repository-file',["require", "exports", '../pak/pak-directory', './state-session'], function (require, exports, pak_directory_1, state_session_1) {
+    "use strict";
+    var StateRepositoryFile = (function () {
+        function StateRepositoryFile() {
+            this.locked = false;
+            this.uniqueId = 'state-repository';
+            this.stateRepositoryType = 'File';
+            this.getPakDirectory = function () {
+                return new pak_directory_1.PakDirectory();
+            };
+        }
+        StateRepositoryFile.fromJSON = function (json) {
+            var stateRepository = new StateRepositoryFile();
+            stateRepository.locked = json.locked;
+            stateRepository.uniqueId = json.uniqueId;
+            stateRepository.stateRepositoryType = json.stateRepositoryType;
+            return stateRepository;
+        };
+        StateRepositoryFile.prototype.getStateSession = function (sessionId) {
+            return new state_session_1.StateSession();
+        };
+        StateRepositoryFile.prototype.toJSON = function () {
+            return {
+                locked: this.locked,
+                stateRepositoryType: this.stateRepositoryType,
+                uniqueId: this.uniqueId,
+            };
+        };
+        return StateRepositoryFile;
+    }());
+    exports.StateRepositoryFile = StateRepositoryFile;
 });
 
 define('platform/state/state-directory',["require", "exports", './state-repository-local-storage', './state-repository-file'], function (require, exports, state_repository_local_storage_1, state_repository_file_1) {
@@ -200,12 +233,13 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-define('app',["require", "exports", 'aurelia-framework', './platform/platform-startup', './platform/plotter-config'], function (require, exports, aurelia_framework_1, platform_startup_1, plotter_config_1) {
+define('app',["require", "exports", 'aurelia-framework', './platform/platform-startup', './platform/plotter-config', './platform/state/state-directory'], function (require, exports, aurelia_framework_1, platform_startup_1, plotter_config_1, state_directory_1) {
     "use strict";
     var App = (function () {
-        function App(platformStartup, plotterConfig) {
+        function App(platformStartup, plotterConfig, container) {
             this.platformStartup = platformStartup;
             this.plotterConfig = plotterConfig;
+            this.container = container;
             this.message = 'Hello World!';
         }
         App.prototype.activate = function () {
@@ -214,11 +248,21 @@ define('app',["require", "exports", 'aurelia-framework', './platform/platform-st
             this.platformStartup.start()
                 .then(function (stateDirectory) {
                 _this.message = "Hello World! (started:" + stateDirectory.stateRepositories.length + ")";
+                _this.container.registerInstance(state_directory_1.StateDirectory, stateDirectory);
             });
         };
+        App.prototype.configureRouter = function (config, router) {
+            config.title = 'Plotter-Platfrom';
+            config.map([
+                { route: ['', 'state'], name: 'state', moduleId: './state/state-repository-chooser', nav: false, title: 'State' },
+                { route: 'session', name: 'session', moduleId: './state/state-session-chooser', nav: false, title: 'Session' },
+                { route: 'shell', name: 'shell', moduleId: './shell/shell', nav: false, title: 'Shell' },
+            ]);
+            this.router = router;
+        };
         App = __decorate([
-            aurelia_framework_1.inject(platform_startup_1.PlatformStartup, plotter_config_1.PlotterConfig), 
-            __metadata('design:paramtypes', [platform_startup_1.PlatformStartup, plotter_config_1.PlotterConfig])
+            aurelia_framework_1.inject(platform_startup_1.PlatformStartup, plotter_config_1.PlotterConfig, aurelia_framework_1.Container), 
+            __metadata('design:paramtypes', [platform_startup_1.PlatformStartup, plotter_config_1.PlotterConfig, aurelia_framework_1.Container])
         ], App);
         return App;
     }());
@@ -263,6 +307,54 @@ define('resources/index',["require", "exports"], function (require, exports) {
     exports.configure = configure;
 });
 
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+define('state/state-repository-chooser',["require", "exports", 'aurelia-framework', '../platform/state/state-directory'], function (require, exports, aurelia_framework_1, state_directory_1) {
+    "use strict";
+    var StateRepositoryChooser = (function () {
+        function StateRepositoryChooser(stateDirectory) {
+            var _this = this;
+            this.stateDirectory = stateDirectory;
+            this.choose = function () {
+                alert("chose: " + _this.state.uniqueId);
+            };
+            this.states = stateDirectory.stateRepositories;
+        }
+        StateRepositoryChooser.prototype.activate = function (params) {
+        };
+        StateRepositoryChooser.prototype.stringify = function (o) {
+            var props = Object.getOwnPropertyNames(o);
+            if (!props.length) {
+                return 'no props';
+            }
+            return props
+                .map(function (name) { return ("name: " + name + ", value: " + o[name]); })
+                .join('\r\n');
+        };
+        StateRepositoryChooser = __decorate([
+            aurelia_framework_1.inject(state_directory_1.StateDirectory), 
+            __metadata('design:paramtypes', [state_directory_1.StateDirectory])
+        ], StateRepositoryChooser);
+        return StateRepositoryChooser;
+    }());
+    exports.StateRepositoryChooser = StateRepositoryChooser;
+});
+
+
+
+define("state/state-session-chooser", [],function(){});
+
+
+
+define("platform/pak/pak-provider-service", [],function(){});
+
 define('platform/pak/pak',["require", "exports"], function (require, exports) {
     "use strict";
     var Pak = (function () {
@@ -273,14 +365,14 @@ define('platform/pak/pak',["require", "exports"], function (require, exports) {
     exports.Pak = Pak;
 });
 
-define('platform/pak/pak-provider',["require", "exports"], function (require, exports) {
+define('platform/pak/pak-repository',["require", "exports"], function (require, exports) {
     "use strict";
 });
 
-define('platform/pak/pak-provider-local-storage',["require", "exports", './pak'], function (require, exports, pak_1) {
+define('platform/pak/pak-repository-local-storage',["require", "exports", './pak'], function (require, exports, pak_1) {
     "use strict";
-    var PakProviderLocalStorage = (function () {
-        function PakProviderLocalStorage() {
+    var PakRepositoryLocalStorage = (function () {
+        function PakRepositoryLocalStorage() {
             this.locked = false;
             this.uniqueId = 'state-provider';
             this.getPak = function (pakId) {
@@ -290,36 +382,32 @@ define('platform/pak/pak-provider-local-storage',["require", "exports", './pak']
                 return [];
             };
         }
-        return PakProviderLocalStorage;
+        return PakRepositoryLocalStorage;
     }());
-    exports.PakProviderLocalStorage = PakProviderLocalStorage;
+    exports.PakRepositoryLocalStorage = PakRepositoryLocalStorage;
 });
 
-
-
-define("platform/pak/pak-provider-service", [],function(){});
-
-define('platform/state/state-provider-github-gist',["require", "exports"], function (require, exports) {
+define('platform/state/state-repository-github-gist',["require", "exports"], function (require, exports) {
     "use strict";
-    var StateProviderGitHubGist = (function () {
-        function StateProviderGitHubGist() {
+    var StateRepositoryGitHubGist = (function () {
+        function StateRepositoryGitHubGist() {
         }
-        return StateProviderGitHubGist;
+        return StateRepositoryGitHubGist;
     }());
-    exports.StateProviderGitHubGist = StateProviderGitHubGist;
+    exports.StateRepositoryGitHubGist = StateRepositoryGitHubGist;
 });
 
-define('platform/state/state-provider-service',["require", "exports"], function (require, exports) {
+define('platform/state/state-repository-service',["require", "exports"], function (require, exports) {
     "use strict";
-    var StateProviderService = (function () {
-        function StateProviderService() {
+    var StateRepositoryService = (function () {
+        function StateRepositoryService() {
         }
-        return StateProviderService;
+        return StateRepositoryService;
     }());
-    exports.StateProviderService = StateProviderService;
+    exports.StateRepositoryService = StateRepositoryService;
 });
 
-define('../test/unit/app.spec',["require", "exports", '../../src/app', '../../src/platform/platform-startup', '../../src/platform/plotter-config', 'aurelia-fetch-client'], function (require, exports, app_1, platform_startup_1, plotter_config_1, aurelia_fetch_client_1) {
+define('../test/unit/app.spec',["require", "exports", '../../src/app', '../../src/platform/platform-startup', '../../src/platform/plotter-config', 'aurelia-framework', 'aurelia-fetch-client'], function (require, exports, app_1, platform_startup_1, plotter_config_1, aurelia_framework_1, aurelia_fetch_client_1) {
     "use strict";
     describe('the app', function () {
         it('says hello', function () {
@@ -328,7 +416,9 @@ define('../test/unit/app.spec',["require", "exports", '../../src/app', '../../sr
                 json: function () { return []; },
             }); };
             var plotterConfig = new plotter_config_1.PlotterConfig();
-            expect(new app_1.App(new platform_startup_1.PlatformStartup(httpMock, plotterConfig), plotterConfig).message).toBe('Hello World!');
+            var container = new aurelia_framework_1.Container();
+            var platformStartup = new platform_startup_1.PlatformStartup(httpMock, plotterConfig);
+            expect(new app_1.App(platformStartup, plotterConfig, container).message).toBe('Hello World!');
         });
         it('true is true', function () {
             expect(true).toBe(true);
@@ -372,137 +462,9 @@ define('../test/unit/platform/platform-startup.spec',["require", "exports", 'aur
     });
 });
 
-define('platform/state/state-repository',["require", "exports"], function (require, exports) {
-    "use strict";
-});
-
-define('platform/state/state-repository-github-gist',["require", "exports"], function (require, exports) {
-    "use strict";
-    var StateRepositoryGitHubGist = (function () {
-        function StateRepositoryGitHubGist() {
-        }
-        return StateRepositoryGitHubGist;
-    }());
-    exports.StateRepositoryGitHubGist = StateRepositoryGitHubGist;
-});
-
-define('platform/state/state-repository-local-storage',["require", "exports", '../pak/pak-directory', './state-session'], function (require, exports, pak_directory_1, state_session_1) {
-    "use strict";
-    var StateRepositoryLocalStorage = (function () {
-        function StateRepositoryLocalStorage() {
-            this.locked = false;
-            this.uniqueId = 'state-repository';
-            this.stateRepositoryType = 'LocalStorage';
-            this.getPakDirectory = function () {
-                return new pak_directory_1.PakDirectory();
-            };
-        }
-        StateRepositoryLocalStorage.fromJSON = function (json) {
-            var stateRepository = new StateRepositoryLocalStorage();
-            stateRepository.locked = json.locked;
-            stateRepository.uniqueId = json.uniqueId;
-            stateRepository.stateRepositoryType = json.stateRepositoryType;
-            return stateRepository;
-        };
-        StateRepositoryLocalStorage.prototype.getStateSession = function (sessionId) {
-            return new state_session_1.StateSession();
-        };
-        StateRepositoryLocalStorage.prototype.toJSON = function () {
-            return {
-                locked: this.locked,
-                stateRepositoryType: this.stateRepositoryType,
-                uniqueId: this.uniqueId,
-            };
-        };
-        return StateRepositoryLocalStorage;
-    }());
-    exports.StateRepositoryLocalStorage = StateRepositoryLocalStorage;
-});
-
-define('platform/state/state-repository-service',["require", "exports"], function (require, exports) {
-    "use strict";
-    var StateRepositoryService = (function () {
-        function StateRepositoryService() {
-        }
-        return StateRepositoryService;
-    }());
-    exports.StateRepositoryService = StateRepositoryService;
-});
-
-define('platform/pak/pak-repository',["require", "exports"], function (require, exports) {
-    "use strict";
-});
-
-define('platform/pak/pak-repository-local-storage',["require", "exports", './pak'], function (require, exports, pak_1) {
-    "use strict";
-    var PakRepositoryLocalStorage = (function () {
-        function PakRepositoryLocalStorage() {
-            this.locked = false;
-            this.uniqueId = 'state-provider';
-            this.getPak = function (pakId) {
-                return new pak_1.Pak();
-            };
-            this.getPaks = function () {
-                return [];
-            };
-        }
-        return PakRepositoryLocalStorage;
-    }());
-    exports.PakRepositoryLocalStorage = PakRepositoryLocalStorage;
-});
-
-
-
-define("platform/state/state-repository-server-file", [],function(){});
-
-define('platform/state/state-repository-file',["require", "exports", '../pak/pak-directory', './state-session'], function (require, exports, pak_directory_1, state_session_1) {
-    "use strict";
-    var StateRepositoryFile = (function () {
-        function StateRepositoryFile() {
-            this.locked = false;
-            this.uniqueId = 'state-repository';
-            this.stateRepositoryType = 'File';
-            this.getPakDirectory = function () {
-                return new pak_directory_1.PakDirectory();
-            };
-        }
-        StateRepositoryFile.fromJSON = function (json) {
-            var stateRepository = new StateRepositoryFile();
-            stateRepository.locked = json.locked;
-            stateRepository.uniqueId = json.uniqueId;
-            stateRepository.stateRepositoryType = json.stateRepositoryType;
-            return stateRepository;
-        };
-        StateRepositoryFile.prototype.getStateSession = function (sessionId) {
-            return new state_session_1.StateSession();
-        };
-        StateRepositoryFile.prototype.toJSON = function () {
-            return {
-                locked: this.locked,
-                stateRepositoryType: this.stateRepositoryType,
-                uniqueId: this.uniqueId,
-            };
-        };
-        return StateRepositoryFile;
-    }());
-    exports.StateRepositoryFile = StateRepositoryFile;
-});
-
-
-
-define("state-repository/state-repository-chooser", [],function(){});
-
-
-
-define("state/state-repository-chooser", [],function(){});
-
-
-
-define("state/state-session-chooser", [],function(){});
-
-define('text!app.html', ['module'], function(module) { module.exports = "<template>\n  <h1>${message}</h1>\n</template>\n"; });
-define('text!state-repository-chooser/state-repository-chooser.html', ['module'], function(module) { module.exports = ""; });
-define('text!state-repository/state-repository-chooser.html', ['module'], function(module) { module.exports = ""; });
-define('text!state/state-repository-chooser.html', ['module'], function(module) { module.exports = ""; });
-define('text!state/state-session-chooser.html', ['module'], function(module) { module.exports = ""; });
+define('text!app.html', ['module'], function(module) { module.exports = "<template>\n  <require from=\"app.css\"></require>\n  <router-view></router-view>\n</template>\n"; });
+define('text!state/state-repository-chooser.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./state-repository-chooser.css\"></require>\r\n    <div class=\"header\">\r\n        <h1>Plotter Host</h1>\r\n        <h3>Choose Plotter Host:</h3>\r\n        <div class=\"input-group input-group-lg\">\r\n            <select class=\"form-control\" value.bind=\"state\">\r\n                <option model.bind=\"ss\" repeat.for=\"ss of states\">${ss.uniqueId}</option>\r\n            </select>\r\n            <span class=\"input-group-addon\" click.trigger=\"choose()\">\r\n                <i class=\"fa fa-arrow-circle-right fa-lg\"></i>\r\n            </span>\r\n        </div>\r\n    </div>\r\n    <div class=\"body\"></div>\r\n</template>"; });
+define('text!state/state-session-chooser.html', ['module'], function(module) { module.exports = "<template>\r\n    <h1> State Chooser </h1>\r\n</template>\r\n"; });
+define('text!app.css', ['module'], function(module) { module.exports = "router-view {\n  flex: 1 0;\n  display: flex;\n  flex-direction: column;\n}\n"; });
+define('text!state/state-repository-chooser.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  flex: 1 1;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
 //# sourceMappingURL=app-bundle.js.map

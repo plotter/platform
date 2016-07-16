@@ -3,6 +3,13 @@
 
 TODO: Explain the project
 
+## URL Parameters
+
+> * `http://localhost:9000/?dir=state-directory`
+> * `http://localhost:9000/?dir=state-directory2`
+
+## Images
+
 ![image](https://cloud.githubusercontent.com/assets/10272832/16725823/48f249cc-4716-11e6-9e33-5f8680498faf.png)
 
 ![image](https://cloud.githubusercontent.com/assets/10272832/16725864/963c45fc-4716-11e6-8a65-2249fd9151d1.png)

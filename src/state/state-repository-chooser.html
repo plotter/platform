@@ -1,0 +1,16 @@
+<template>
+    <require from="./state-repository-chooser.css"></require>
+    <div class="header">
+        <h1>Plotter Host</h1>
+        <h3>Choose Plotter Host:</h3>
+        <div class="input-group input-group-lg">
+            <select class="form-control" value.bind="state">
+                <option model.bind="ss" repeat.for="ss of states">${ss.uniqueId}</option>
+            </select>
+            <span class="input-group-addon" click.trigger="choose()">
+                <i class="fa fa-arrow-circle-right fa-lg"></i>
+            </span>
+        </div>
+    </div>
+    <div class="body"></div>
+</template>

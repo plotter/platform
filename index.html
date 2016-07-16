@@ -3,7 +3,11 @@
 
 <head>
   <title>Aurelia</title>
+  <link rel="stylesheet" href="node_modules/font-awesome/css/font-awesome.min.css">
+  <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="./index.css">
 </head>
+
 <script>
     function getParameterByName(name, url) {
       if (!url) url = window.location.href;
@@ -14,8 +18,9 @@
       if (!results[2]) return '';
       return decodeURIComponent(results[2].replace(/\+/g, " "));
     }
-    plotterStateDirectoryName = getParameterByName('sdn') || 'state-directory'
-    </script>
+    plotterStateDirectoryName = getParameterByName('dir') || 'state-directory'
+</script>
+
 
 <body aurelia-app="main">
   <script src="scripts/vendor-bundle.js" data-main="aurelia-bootstrapper"></script>
