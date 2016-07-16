@@ -81,6 +81,7 @@ define('platform/state/state-repository-local-storage',["require", "exports", '.
                 locked: this.locked,
                 stateRepositoryType: this.stateRepositoryType,
                 uniqueId: this.uniqueId,
+                path: null,
             };
         };
         return StateRepositoryLocalStorage;
@@ -88,10 +89,20 @@ define('platform/state/state-repository-local-storage',["require", "exports", '.
     exports.StateRepositoryLocalStorage = StateRepositoryLocalStorage;
 });
 
-define('platform/state/state-repository-file',["require", "exports", '../pak/pak-directory', './state-session'], function (require, exports, pak_directory_1, state_session_1) {
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+define('platform/state/state-repository-file',["require", "exports", 'aurelia-framework', 'aurelia-fetch-client', '../pak/pak-directory', './state-session'], function (require, exports, aurelia_framework_1, aurelia_fetch_client_1, pak_directory_1, state_session_1) {
     "use strict";
     var StateRepositoryFile = (function () {
-        function StateRepositoryFile() {
+        function StateRepositoryFile(httpClient) {
+            this.httpClient = httpClient;
             this.locked = false;
             this.uniqueId = 'state-repository';
             this.stateRepositoryType = 'File';
@@ -100,18 +111,29 @@ define('platform/state/state-repository-file',["require", "exports", '../pak/pak
             };
         }
         StateRepositoryFile.fromJSON = function (json) {
-            var stateRepository = new StateRepositoryFile();
+            var stateRepository = new StateRepositoryFile(new aurelia_fetch_client_1.HttpClient());
             stateRepository.locked = json.locked;
             stateRepository.uniqueId = json.uniqueId;
             stateRepository.stateRepositoryType = json.stateRepositoryType;
+            stateRepository.path = json.path;
             return stateRepository;
         };
         StateRepositoryFile.prototype.getStateSession = function (sessionId) {
             return Promise.resolve(new state_session_1.StateSession());
         };
         StateRepositoryFile.prototype.getSessionList = function () {
+            var that = this;
             return new Promise(function (resolve, reject) {
-                resolve(['A', 'B', 'C']);
+                that.httpClient.fetch(that.path + "/" + that.uniqueId + "/session-list.json")
+                    .then(function (response) {
+                    return response.json();
+                })
+                    .then(function (data) {
+                    resolve(data.sessionList);
+                })
+                    .catch(function (reason) {
+                    reject(new Error("fetch session list: reason: \r\n\r\n" + reason));
+                });
             });
         };
         StateRepositoryFile.prototype.toJSON = function () {
@@ -119,14 +141,19 @@ define('platform/state/state-repository-file',["require", "exports", '../pak/pak
                 locked: this.locked,
                 stateRepositoryType: this.stateRepositoryType,
                 uniqueId: this.uniqueId,
+                path: this.path,
             };
         };
+        StateRepositoryFile = __decorate([
+            aurelia_framework_1.inject(aurelia_fetch_client_1.HttpClient), 
+            __metadata('design:paramtypes', [aurelia_fetch_client_1.HttpClient])
+        ], StateRepositoryFile);
         return StateRepositoryFile;
     }());
     exports.StateRepositoryFile = StateRepositoryFile;
 });
 
-define('platform/state/state-directory',["require", "exports", './state-repository-local-storage', './state-repository-file'], function (require, exports, state_repository_local_storage_1, state_repository_file_1) {
+define('platform/state/state-directory',["require", "exports", 'aurelia-fetch-client', './state-repository-local-storage', './state-repository-file'], function (require, exports, aurelia_fetch_client_1, state_repository_local_storage_1, state_repository_file_1) {
     "use strict";
     var StateDirectory = (function () {
         function StateDirectory() {
@@ -147,10 +174,11 @@ define('platform/state/state-directory',["require", "exports", './state-reposito
                         }
                     case 'File':
                         {
-                            var stateRepository = new state_repository_file_1.StateRepositoryFile();
+                            var stateRepository = new state_repository_file_1.StateRepositoryFile(new aurelia_fetch_client_1.HttpClient());
                             stateRepository.locked = stateRepositoryJSON.locked;
                             stateRepository.uniqueId = stateRepositoryJSON.uniqueId;
                             stateRepository.stateRepositoryType = stateRepositoryJSON.stateRepositoryType;
+                            stateRepository.path = stateRepositoryJSON.path;
                             return stateRepository;
                         }
                     default:

@@ -1,9 +1,9 @@
-import { StateRepository, StateRepositoryType } from './state-repository';
+import { StateRepository, StateRepositoryType, StateRepositoryJSON } from './state-repository';
 import { PakDirectory } from '../pak/pak-directory';
 import { StateSession } from './state-session';
 
 export class StateRepositoryLocalStorage implements StateRepository {
-    public static fromJSON(json: StateRepositoryLocalStorageJSON): StateRepositoryLocalStorage {
+    public static fromJSON(json: StateRepositoryJSON): StateRepositoryLocalStorage {
         let stateRepository = new StateRepositoryLocalStorage();
         // assign properties...
         stateRepository.locked = json.locked;
@@ -26,11 +26,12 @@ export class StateRepositoryLocalStorage implements StateRepository {
             resolve(['A', 'B', 'C']);
         });
     }
-    public toJSON(): StateRepositoryLocalStorageJSON {
+    public toJSON(): StateRepositoryJSON {
     return {
         locked: this.locked,
         stateRepositoryType: this.stateRepositoryType,
         uniqueId: this.uniqueId,
+        path: null,
     };
 }
 }

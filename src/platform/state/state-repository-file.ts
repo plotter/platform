@@ -1,20 +1,28 @@
-import { StateRepository, StateRepositoryType } from './state-repository';
+import { inject } from 'aurelia-framework';
+import { HttpClient } from 'aurelia-fetch-client';
+import { StateRepository, StateRepositoryType, StateRepositoryJSON } from './state-repository';
 import { PakDirectory } from '../pak/pak-directory';
 import { StateSession } from './state-session';
 
+@inject(HttpClient)
 export class StateRepositoryFile implements StateRepository {
-    public static fromJSON(json: StateRepositoryFileJSON): StateRepositoryFile {
-        let stateRepository = new StateRepositoryFile();
+    public static fromJSON(json: StateRepositoryJSON): StateRepositoryFile {
+        let stateRepository = new StateRepositoryFile(new HttpClient());
         // assign properties...
         stateRepository.locked = json.locked;
         stateRepository.uniqueId = json.uniqueId;
         stateRepository.stateRepositoryType = json.stateRepositoryType;
+        stateRepository.path = json.path;
         return stateRepository;
     }
 
     public locked = false;
     public uniqueId = 'state-repository';
     public stateRepositoryType: StateRepositoryType = 'File';
+    public path: string;
+
+    constructor(private httpClient: HttpClient) {}
+
     public getPakDirectory = () => {
         return Promise.resolve<PakDirectory>(new PakDirectory());
     }
@@ -22,15 +30,27 @@ export class StateRepositoryFile implements StateRepository {
         return Promise.resolve<StateSession>(new StateSession());
     }
     public getSessionList() {
+        let that = this;
+
         return new Promise<string[]>((resolve, reject) => {
-            resolve(['A', 'B', 'C']);
+            that.httpClient.fetch(`${that.path}/${that.uniqueId}/session-list.json`)
+                .then(response => {
+                    return response.json();
+                })
+                .then(data => {
+                    resolve(<string[]> data.sessionList);
+                })
+                .catch(reason => {
+                    reject(new Error(`fetch session list: reason: \r\n\r\n${reason}`));
+                });
         });
     }
-    public toJSON(): StateRepositoryFileJSON {
+    public toJSON(): StateRepositoryJSON {
         return {
             locked: this.locked,
             stateRepositoryType: this.stateRepositoryType,
             uniqueId: this.uniqueId,
+            path: this.path,
         };
     }
 }

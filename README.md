@@ -7,6 +7,8 @@ TODO: Explain the project
 
 > * `http://localhost:9000/?dir=state-directory`
 > * `http://localhost:9000/?dir=state-directory2`
+> * `http://localhost:9000/?dir=state-directory#/session?uniqueId=file-host-02`
+> * `http://localhost:9000/#/session?uniqueId=file-host-01`
 
 ## Images
 

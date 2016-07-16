@@ -15,6 +15,7 @@ export interface StateRepositoryJSON {
     locked: boolean;
     uniqueId: string;
     stateRepositoryType: StateRepositoryType;
+    path: string;
 }
 
 export type StateRepositoryType = 'LocalStorage' | 'Service' | 'GitHubGist' | 'File';

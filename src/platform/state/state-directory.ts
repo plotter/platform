@@ -1,3 +1,4 @@
+import { HttpClient } from 'aurelia-fetch-client';
 import { StateRepository, StateRepositoryJSON  } from './state-repository';
 import { StateRepositoryLocalStorage } from './state-repository-local-storage';
 import { StateRepositoryFile } from './state-repository-file';
@@ -16,15 +17,16 @@ export class StateDirectory {
                     stateRepository.locked = stateRepositoryJSON.locked;
                     stateRepository.uniqueId = stateRepositoryJSON.uniqueId;
                     stateRepository.stateRepositoryType = stateRepositoryJSON.stateRepositoryType;
-                    return stateRepository;
+                    return <StateRepository> stateRepository;
                 }
 
                 case 'File':
                 {
-                    let stateRepository = new StateRepositoryFile();
+                    let stateRepository = new StateRepositoryFile(new HttpClient());
                     stateRepository.locked = stateRepositoryJSON.locked;
                     stateRepository.uniqueId = stateRepositoryJSON.uniqueId;
                     stateRepository.stateRepositoryType = stateRepositoryJSON.stateRepositoryType;
+                    stateRepository.path = stateRepositoryJSON.path;
                     return stateRepository;
                 }
 
