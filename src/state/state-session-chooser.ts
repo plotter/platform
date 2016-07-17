@@ -26,4 +26,8 @@ export class StateSessionChooser {
             this.message = 'did not find repo';
         }
     }
+
+    public choose() {
+        
+    }
 }

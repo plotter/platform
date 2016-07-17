@@ -208,15 +208,45 @@ define('platform/state/state-directory',["require", "exports", 'aurelia-fetch-cl
     exports.StateDirectory = StateDirectory;
 });
 
-define('platform/plotter-config',["require", "exports"], function (require, exports) {
+define('platform/plotter',["require", "exports"], function (require, exports) {
     "use strict";
-    var PlotterConfig = (function () {
-        function PlotterConfig() {
+    var Plotter = (function () {
+        function Plotter() {
             this.stateDirectoryName = 'state-directory';
         }
-        return PlotterConfig;
+        Object.defineProperty(Plotter.prototype, "stateDirectory", {
+            get: function () {
+                return this.myStateDirectory;
+            },
+            set: function (value) {
+                this.myStateDirectory = value;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Plotter.prototype, "stateRepository", {
+            get: function () {
+                return this.myStateRepository;
+            },
+            set: function (value) {
+                this.myStateRepository = value;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Plotter.prototype, "stateSession", {
+            get: function () {
+                return this.myStateSession;
+            },
+            set: function (value) {
+                this.myStateSession = value;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        return Plotter;
     }());
-    exports.PlotterConfig = PlotterConfig;
+    exports.Plotter = Plotter;
 });
 
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
@@ -228,18 +258,18 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-define('platform/platform-startup',["require", "exports", 'aurelia-framework', 'aurelia-fetch-client', './state/state-directory', './plotter-config'], function (require, exports, aurelia_framework_1, aurelia_fetch_client_1, state_directory_1, plotter_config_1) {
+define('platform/platform-startup',["require", "exports", 'aurelia-framework', 'aurelia-fetch-client', './state/state-directory', './plotter'], function (require, exports, aurelia_framework_1, aurelia_fetch_client_1, state_directory_1, plotter_1) {
     "use strict";
     var PlatformStartup = (function () {
-        function PlatformStartup(httpClient, plotterConfig) {
+        function PlatformStartup(httpClient, plotter) {
             this.httpClient = httpClient;
-            this.plotterConfig = plotterConfig;
+            this.plotter = plotter;
         }
         PlatformStartup.prototype.start = function () {
             var _this = this;
             var that = this;
             return new Promise(function (resolve, reject) {
-                var sdn = _this.plotterConfig.stateDirectoryName;
+                var sdn = _this.plotter.stateDirectoryName;
                 if (sdn.toLowerCase().startsWith('service:')) {
                 }
                 else if (sdn.toLowerCase().startsWith('githubgist:')) {
@@ -254,6 +284,7 @@ define('platform/platform-startup',["require", "exports", 'aurelia-framework', '
                     })
                         .then(function (data) {
                         var stateDirectory = state_directory_1.StateDirectory.fromJSON(data);
+                        _this.plotter.stateDirectory = stateDirectory;
                         resolve(stateDirectory);
                     })
                         .catch(function (reason) {
@@ -263,8 +294,8 @@ define('platform/platform-startup',["require", "exports", 'aurelia-framework', '
             });
         };
         PlatformStartup = __decorate([
-            aurelia_framework_1.inject(aurelia_fetch_client_1.HttpClient, plotter_config_1.PlotterConfig), 
-            __metadata('design:paramtypes', [aurelia_fetch_client_1.HttpClient, plotter_config_1.PlotterConfig])
+            aurelia_framework_1.inject(aurelia_fetch_client_1.HttpClient, plotter_1.Plotter), 
+            __metadata('design:paramtypes', [aurelia_fetch_client_1.HttpClient, plotter_1.Plotter])
         ], PlatformStartup);
         return PlatformStartup;
     }());
@@ -280,7 +311,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-define('app',["require", "exports", 'aurelia-framework', './platform/platform-startup', './platform/plotter-config', './platform/state/state-directory'], function (require, exports, aurelia_framework_1, platform_startup_1, plotter_config_1, state_directory_1) {
+define('app',["require", "exports", 'aurelia-framework', './platform/platform-startup', './platform/plotter', './platform/state/state-directory'], function (require, exports, aurelia_framework_1, platform_startup_1, plotter_1, state_directory_1) {
     "use strict";
     var App = (function () {
         function App(platformStartup, plotterConfig, container) {
@@ -308,8 +339,8 @@ define('app',["require", "exports", 'aurelia-framework', './platform/platform-st
             this.router = router;
         };
         App = __decorate([
-            aurelia_framework_1.inject(platform_startup_1.PlatformStartup, plotter_config_1.PlotterConfig, aurelia_framework_1.Container), 
-            __metadata('design:paramtypes', [platform_startup_1.PlatformStartup, plotter_config_1.PlotterConfig, aurelia_framework_1.Container])
+            aurelia_framework_1.inject(platform_startup_1.PlatformStartup, plotter_1.Plotter, aurelia_framework_1.Container), 
+            __metadata('design:paramtypes', [platform_startup_1.PlatformStartup, plotter_1.Plotter, aurelia_framework_1.Container])
         ], App);
         return App;
     }());
@@ -352,6 +383,16 @@ define('resources/index',["require", "exports"], function (require, exports) {
     function configure(config) {
     }
     exports.configure = configure;
+});
+
+define('shell/shell',["require", "exports"], function (require, exports) {
+    "use strict";
+    var Shell = (function () {
+        function Shell() {
+        }
+        return Shell;
+    }());
+    exports.Shell = Shell;
 });
 
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
@@ -415,6 +456,8 @@ define('state/state-session-chooser',["require", "exports", 'aurelia-framework',
             else {
                 this.message = 'did not find repo';
             }
+        };
+        StateSessionChooser.prototype.choose = function () {
         };
         StateSessionChooser = __decorate([
             aurelia_framework_1.inject(state_directory_1.StateDirectory), 
@@ -481,7 +524,7 @@ define('platform/state/state-repository-service',["require", "exports"], functio
     exports.StateRepositoryService = StateRepositoryService;
 });
 
-define('../test/unit/app.spec',["require", "exports", '../../src/app', '../../src/platform/platform-startup', '../../src/platform/plotter-config', 'aurelia-framework', 'aurelia-fetch-client'], function (require, exports, app_1, platform_startup_1, plotter_config_1, aurelia_framework_1, aurelia_fetch_client_1) {
+define('../test/unit/app.spec',["require", "exports", '../../src/app', '../../src/platform/platform-startup', '../../src/platform/plotter', 'aurelia-framework', 'aurelia-fetch-client'], function (require, exports, app_1, platform_startup_1, plotter_1, aurelia_framework_1, aurelia_fetch_client_1) {
     "use strict";
     describe('the app', function () {
         it('says hello', function () {
@@ -489,7 +532,7 @@ define('../test/unit/app.spec',["require", "exports", '../../src/app', '../../sr
             httpMock.fetch = function (url) { return Promise.resolve({
                 json: function () { return []; },
             }); };
-            var plotterConfig = new plotter_config_1.PlotterConfig();
+            var plotterConfig = new plotter_1.Plotter();
             var container = new aurelia_framework_1.Container();
             var platformStartup = new platform_startup_1.PlatformStartup(httpMock, plotterConfig);
             expect(new app_1.App(platformStartup, plotterConfig, container).message).toBe('Hello World!');
@@ -505,17 +548,17 @@ define('../test/unit/setup',["require", "exports", 'aurelia-pal-browser', 'aurel
     aurelia_pal_browser_1.initialize();
 });
 
-define('../test/unit/platform/platform-startup.spec',["require", "exports", 'aurelia-fetch-client', '../../../src/platform/platform-startup', '../../../src/platform/plotter-config'], function (require, exports, aurelia_fetch_client_1, platform_startup_1, plotter_config_1) {
+define('../test/unit/platform/platform-startup.spec',["require", "exports", 'aurelia-fetch-client', '../../../src/platform/platform-startup', '../../../src/platform/plotter'], function (require, exports, aurelia_fetch_client_1, platform_startup_1, plotter_1) {
     "use strict";
     describe('platform startup class', function () {
         it('returns a promise of type platform config', function () {
-            var plotterConfig = new plotter_config_1.PlotterConfig();
+            var plotterConfig = new plotter_1.Plotter();
             var platformStartup = new platform_startup_1.PlatformStartup(new aurelia_fetch_client_1.HttpClient(), plotterConfig);
             var ret = platformStartup.start();
             expect(ret instanceof Promise).toBe(true);
         });
         it('resolves the promise', (function (done) {
-            var plotterConfig = new plotter_config_1.PlotterConfig();
+            var plotterConfig = new plotter_1.Plotter();
             var httpClient = new aurelia_fetch_client_1.HttpClient();
             httpClient.baseUrl = 'http://localhost:9000/';
             var platformStartup = new platform_startup_1.PlatformStartup(httpClient, plotterConfig);
@@ -537,9 +580,12 @@ define('../test/unit/platform/platform-startup.spec',["require", "exports", 'aur
 });
 
 define('text!app.html', ['module'], function(module) { module.exports = "<template>\n  <require from=\"app.css\"></require>\n  <router-view></router-view>\n</template>\n"; });
-define('text!state/state-repository-chooser.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./state-repository-chooser.css\"></require>\r\n    <div class=\"header\">\r\n        <h1>Plotter Host</h1>\r\n        <h3>Choose Plotter Host:</h3>\r\n        <div class=\"input-group input-group-lg\">\r\n            <select class=\"form-control\" value.bind=\"state\">\r\n                <option model.bind=\"ss\" repeat.for=\"ss of states\">${ss.uniqueId}</option>\r\n            </select>\r\n            <span class=\"input-group-addon\" click.trigger=\"choose()\">\r\n                <i class=\"fa fa-arrow-circle-right fa-lg\"></i>\r\n            </span>\r\n        </div>\r\n    </div>\r\n    <div class=\"body\"></div>\r\n</template>"; });
-define('text!state/state-session-chooser.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./state-repository-chooser.css\"></require>\r\n    <div class=\"header\">\r\n        <h1>Session Chooser (${stateRepoUniqueId}) </h1>\r\n        <p>${message} </p>\r\n        <h3>Choose Session:</h3>\r\n        <div class=\"input-group input-group-lg\">\r\n            <select class=\"form-control\" value.bind=\"sessionId\">\r\n                <option value.bind=\"s\" repeat.for=\"s of sessionList\">${s}</option>\r\n            </select>\r\n            <span class=\"input-group-addon\" click.trigger=\"choose()\">\r\n                <i class=\"fa fa-arrow-circle-right fa-lg\"></i>\r\n            </span>\r\n        </div>\r\n\r\n    </div>\r\n    <div class=\"body\"></div>\r\n</template>\r\n"; });
+define('text!shell/shell.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./shell.css\"></require>\r\n    <div class=\"header\">\r\n        <h1>Shell (${stateRepoUniqueId} / ${sessionUniqueId}) </h1>\r\n    </div>\r\n    <div class=\"body\"></div>\r\n</template>\r\n"; });
 define('text!app.css', ['module'], function(module) { module.exports = "router-view {\n  flex: 1 0;\n  display: flex;\n  flex-direction: column;\n}\n"; });
+define('text!shell/shell.css', ['module'], function(module) { module.exports = ""; });
+define('text!state/state-repository-chooser.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./state-repository-chooser.css\"></require>\r\n    <div class=\"header\">\r\n        <h1>Plotter Host</h1>\r\n        <h3>Choose Plotter Host:</h3>\r\n        <div class=\"input-group input-group-lg\">\r\n            <select class=\"form-control\" value.bind=\"state\">\r\n                <option model.bind=\"ss\" repeat.for=\"ss of states\">${ss.uniqueId}</option>\r\n            </select>\r\n            <span class=\"input-group-addon\" click.trigger=\"choose()\">\r\n                <i class=\"fa fa-arrow-circle-right fa-lg\"></i>\r\n            </span>\r\n        </div>\r\n    </div>\r\n    <div class=\"body\"></div>\r\n</template>"; });
+define('text!shell/state-repository-chooser.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  flex: 1 1;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
+define('text!state/state-session-chooser.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./state-repository-chooser.css\"></require>\r\n    <div class=\"header\">\r\n        <h1>Session Chooser (${stateRepoUniqueId}) </h1>\r\n        <p>${message} </p>\r\n        <h3>Choose Session:</h3>\r\n        <div class=\"input-group input-group-lg\">\r\n            <select class=\"form-control\" value.bind=\"sessionId\">\r\n                <option value.bind=\"s\" repeat.for=\"s of sessionList\">${s}</option>\r\n            </select>\r\n            <span class=\"input-group-addon\" click.trigger=\"choose()\">\r\n                <i class=\"fa fa-arrow-circle-right fa-lg\"></i>\r\n            </span>\r\n        </div>\r\n\r\n    </div>\r\n    <div class=\"body\"></div>\r\n</template>\r\n"; });
 define('text!state/state-repository-chooser.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  flex: 1 1;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
 define('text!state/state-session-chooser.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  flex: 1 1;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
 //# sourceMappingURL=app-bundle.js.map

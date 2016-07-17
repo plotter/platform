@@ -1,6 +1,6 @@
 import {App} from '../../src/app';
 import {PlatformStartup} from '../../src/platform/platform-startup';
-import {PlotterConfig} from '../../src/platform/plotter-config';
+import {Plotter} from '../../src/platform/plotter';
 import {Container} from 'aurelia-framework';
 import {HttpClient} from 'aurelia-fetch-client';
 
@@ -12,7 +12,7 @@ describe('the app', () => {
       json: () => [],
     });
 
-    let plotterConfig = new PlotterConfig();
+    let plotterConfig = new Plotter();
     let container = new Container();
     let platformStartup = new PlatformStartup(httpMock, plotterConfig);
     expect(new App(platformStartup, plotterConfig, container).message).toBe('Hello World!');

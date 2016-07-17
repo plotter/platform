@@ -3,19 +3,19 @@ import { HttpClient } from 'aurelia-fetch-client';
 import { StateDirectory } from './state/state-directory';
 import { StateRepository } from './state/state-repository';
 import { StateRepositoryLocalStorage } from './state/state-repository-local-storage';
-import { PlotterConfig } from './plotter-config';
+import { Plotter } from './plotter';
 
-@inject(HttpClient, PlotterConfig)
+@inject(HttpClient, Plotter)
 export class PlatformStartup {
 
-    constructor(private httpClient: HttpClient, private plotterConfig: PlotterConfig) { }
+    constructor(private httpClient: HttpClient, private plotter: Plotter) { }
 
     public start(): Promise<StateDirectory> {
         let that = this;
 
         return new Promise<StateDirectory>((resolve, reject) => {
 
-            let sdn = this.plotterConfig.stateDirectoryName;
+            let sdn = this.plotter.stateDirectoryName;
 
             // check if sdn has prefix (service:, githubgist:myStateDir[.json], localstorage:)
             if (sdn.toLowerCase().startsWith('service:')) {
@@ -36,6 +36,7 @@ export class PlatformStartup {
                             })
                             .then(data => {
                                 let stateDirectory = StateDirectory.fromJSON(data);
+                                this.plotter.stateDirectory = stateDirectory;
                                 resolve(stateDirectory);
                             })
                             .catch(reason => {

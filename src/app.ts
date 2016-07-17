@@ -1,17 +1,17 @@
 import { inject, Container } from 'aurelia-framework';
 import { Router, RouterConfiguration } from 'aurelia-router';
 import { PlatformStartup } from './platform/platform-startup';
-import { PlotterConfig } from './platform/plotter-config';
+import { Plotter } from './platform/plotter';
 import { StateDirectory } from './platform/state/state-directory';
 
-@inject(PlatformStartup, PlotterConfig, Container)
+@inject(PlatformStartup, Plotter, Container)
 export class App {
   public router: Router;
   public message = 'Hello World!';
 
   constructor(
     private platformStartup: PlatformStartup,
-    private plotterConfig: PlotterConfig,
+    private plotterConfig: Plotter,
     private container: Container) {}
 
   public activate() {
