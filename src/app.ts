@@ -17,10 +17,11 @@ export class App {
   public activate() {
     this.plotterConfig.stateDirectoryName = (<any> window).plotterStateDirectoryName;
 
-    this.platformStartup.start()
+    return this.platformStartup.start()
       .then(stateDirectory => {
           this.message = `Hello World! (started:${stateDirectory.stateRepositories.length})`;
           this.container.registerInstance(StateDirectory, stateDirectory);
+          return stateDirectory;
         }
     );
   }

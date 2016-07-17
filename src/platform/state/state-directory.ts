@@ -41,14 +41,31 @@ export class StateDirectory {
     public uniqueId: string;
     public stateRepositories: StateRepository[];
 
-    public getStateRepository(uniqueId: string) {
+    public getStateRepository(uniqueId: string): StateRepository {
+
+        // let the default plotter host (aka state repository) be the first one in the list
+        if (!uniqueId && this.stateRepositories.length > 0) {
+            return this.stateRepositories[0];
+        }
+
         let repoMatch = null;
-        this.stateRepositories.forEach(repo => {
+        this.stateRepositories.some(repo => {
             if (repo.uniqueId === uniqueId) {
                 repoMatch = repo;
+                return true; // stops processing, so we choose the first repo having that unique id
             }
+            return false;
         });
         return repoMatch;
+    }
+
+    public getStateSession(stateRepositoryId: string, stateSessionId: string) {
+        let repo = this.getStateRepository(stateRepositoryId);
+        if (!repo) {
+            throw new Error(`Could not retrieve repository: ${stateRepositoryId}`);
+        }
+
+        return repo.getStateSession(stateSessionId);
     }
 
     public toJSON(): StateDirectoryJSON {

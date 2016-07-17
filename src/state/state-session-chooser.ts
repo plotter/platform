@@ -1,20 +1,23 @@
 import { inject } from 'aurelia-framework';
+import { Router } from 'aurelia-router';
 import { StateDirectory } from '../platform/state/state-directory';
 import { StateRepository } from '../platform/state/state-repository';
+import { Plotter } from '../platform/plotter';
 
-@inject(StateDirectory)
+@inject(StateDirectory, Plotter, Router)
 export class StateSessionChooser {
     public stateRepoUniqueId: string;
     public stateRepo: StateRepository;
     public message: string = 'no message.';
     public sessionList: string[] = [];
+    public sessionId: string;
 
-    constructor(private stateDirectory: StateDirectory) {}
+    constructor(private stateDirectory: StateDirectory, private plotter: Plotter, private router: Router) { }
 
     public activate(params) {
         let that = this;
 
-        this.stateRepoUniqueId = params.uniqueId;
+        this.stateRepoUniqueId = params.hostId;
         this.stateRepo = this.stateDirectory.getStateRepository(this.stateRepoUniqueId);
         if (this.stateRepo) {
             this.message = 'found repo';
@@ -28,6 +31,11 @@ export class StateSessionChooser {
     }
 
     public choose() {
-        
+        // route to session chooser
+        this.stateDirectory.getStateSession(this.stateRepoUniqueId, this.sessionId)
+            .then(stateSession => {
+                this.plotter.stateSession = stateSession;
+                this.router.navigateToRoute('shell', { hostId: this.stateRepoUniqueId, sessionId: this.sessionId });
+            });
     }
 }

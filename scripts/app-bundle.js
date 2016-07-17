@@ -188,13 +188,25 @@ define('platform/state/state-directory',["require", "exports", 'aurelia-fetch-cl
             return stateDirectory;
         };
         StateDirectory.prototype.getStateRepository = function (uniqueId) {
+            if (!uniqueId && this.stateRepositories.length > 0) {
+                return this.stateRepositories[0];
+            }
             var repoMatch = null;
-            this.stateRepositories.forEach(function (repo) {
+            this.stateRepositories.some(function (repo) {
                 if (repo.uniqueId === uniqueId) {
                     repoMatch = repo;
+                    return true;
                 }
+                return false;
             });
             return repoMatch;
+        };
+        StateDirectory.prototype.getStateSession = function (stateRepositoryId, stateSessionId) {
+            var repo = this.getStateRepository(stateRepositoryId);
+            if (!repo) {
+                throw new Error("Could not retrieve repository: " + stateRepositoryId);
+            }
+            return repo.getStateSession(stateSessionId);
         };
         StateDirectory.prototype.toJSON = function () {
             return {
@@ -323,10 +335,11 @@ define('app',["require", "exports", 'aurelia-framework', './platform/platform-st
         App.prototype.activate = function () {
             var _this = this;
             this.plotterConfig.stateDirectoryName = window.plotterStateDirectoryName;
-            this.platformStartup.start()
+            return this.platformStartup.start()
                 .then(function (stateDirectory) {
                 _this.message = "Hello World! (started:" + stateDirectory.stateRepositories.length + ")";
                 _this.container.registerInstance(state_directory_1.StateDirectory, stateDirectory);
+                return stateDirectory;
             });
         };
         App.prototype.configureRouter = function (config, router) {
@@ -390,6 +403,10 @@ define('shell/shell',["require", "exports"], function (require, exports) {
     var Shell = (function () {
         function Shell() {
         }
+        Shell.prototype.activate = function (params) {
+            this.hostId = params.hostId;
+            this.sessionId = params.sessionId;
+        };
         return Shell;
     }());
     exports.Shell = Shell;
@@ -404,21 +421,23 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-define('state/state-repository-chooser',["require", "exports", 'aurelia-framework', 'aurelia-router', '../platform/state/state-directory'], function (require, exports, aurelia_framework_1, aurelia_router_1, state_directory_1) {
+define('state/state-repository-chooser',["require", "exports", 'aurelia-framework', 'aurelia-router', '../platform/state/state-directory', '../platform/plotter'], function (require, exports, aurelia_framework_1, aurelia_router_1, state_directory_1, plotter_1) {
     "use strict";
     var StateRepositoryChooser = (function () {
-        function StateRepositoryChooser(stateDirectory, router) {
+        function StateRepositoryChooser(stateDirectory, router, plotter) {
             var _this = this;
             this.stateDirectory = stateDirectory;
             this.router = router;
+            this.plotter = plotter;
             this.choose = function () {
-                _this.router.navigateToRoute('session', { uniqueId: _this.state.uniqueId });
+                _this.plotter.stateRepository = _this.state;
+                _this.router.navigateToRoute('session', { hostId: _this.state.uniqueId });
             };
             this.states = stateDirectory.stateRepositories;
         }
         StateRepositoryChooser = __decorate([
-            aurelia_framework_1.inject(state_directory_1.StateDirectory, aurelia_router_1.Router), 
-            __metadata('design:paramtypes', [state_directory_1.StateDirectory, aurelia_router_1.Router])
+            aurelia_framework_1.inject(state_directory_1.StateDirectory, aurelia_router_1.Router, plotter_1.Plotter), 
+            __metadata('design:paramtypes', [state_directory_1.StateDirectory, aurelia_router_1.Router, plotter_1.Plotter])
         ], StateRepositoryChooser);
         return StateRepositoryChooser;
     }());
@@ -434,17 +453,19 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-define('state/state-session-chooser',["require", "exports", 'aurelia-framework', '../platform/state/state-directory'], function (require, exports, aurelia_framework_1, state_directory_1) {
+define('state/state-session-chooser',["require", "exports", 'aurelia-framework', 'aurelia-router', '../platform/state/state-directory', '../platform/plotter'], function (require, exports, aurelia_framework_1, aurelia_router_1, state_directory_1, plotter_1) {
     "use strict";
     var StateSessionChooser = (function () {
-        function StateSessionChooser(stateDirectory) {
+        function StateSessionChooser(stateDirectory, plotter, router) {
             this.stateDirectory = stateDirectory;
+            this.plotter = plotter;
+            this.router = router;
             this.message = 'no message.';
             this.sessionList = [];
         }
         StateSessionChooser.prototype.activate = function (params) {
             var that = this;
-            this.stateRepoUniqueId = params.uniqueId;
+            this.stateRepoUniqueId = params.hostId;
             this.stateRepo = this.stateDirectory.getStateRepository(this.stateRepoUniqueId);
             if (this.stateRepo) {
                 this.message = 'found repo';
@@ -458,10 +479,16 @@ define('state/state-session-chooser',["require", "exports", 'aurelia-framework',
             }
         };
         StateSessionChooser.prototype.choose = function () {
+            var _this = this;
+            this.stateDirectory.getStateSession(this.stateRepoUniqueId, this.sessionId)
+                .then(function (stateSession) {
+                _this.plotter.stateSession = stateSession;
+                _this.router.navigateToRoute('shell', { hostId: _this.stateRepoUniqueId, sessionId: _this.sessionId });
+            });
         };
         StateSessionChooser = __decorate([
-            aurelia_framework_1.inject(state_directory_1.StateDirectory), 
-            __metadata('design:paramtypes', [state_directory_1.StateDirectory])
+            aurelia_framework_1.inject(state_directory_1.StateDirectory, plotter_1.Plotter, aurelia_router_1.Router), 
+            __metadata('design:paramtypes', [state_directory_1.StateDirectory, plotter_1.Plotter, aurelia_router_1.Router])
         ], StateSessionChooser);
         return StateSessionChooser;
     }());
@@ -580,9 +607,9 @@ define('../test/unit/platform/platform-startup.spec',["require", "exports", 'aur
 });
 
 define('text!app.html', ['module'], function(module) { module.exports = "<template>\n  <require from=\"app.css\"></require>\n  <router-view></router-view>\n</template>\n"; });
-define('text!shell/shell.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./shell.css\"></require>\r\n    <div class=\"header\">\r\n        <h1>Shell (${stateRepoUniqueId} / ${sessionUniqueId}) </h1>\r\n    </div>\r\n    <div class=\"body\"></div>\r\n</template>\r\n"; });
+define('text!shell/shell.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./shell.css\"></require>\r\n    <div class=\"header\">\r\n        <h1>Shell (${hostId} / ${sessionId}) </h1>\r\n    </div>\r\n    <div class=\"body\">\r\n        \r\n    </div>\r\n</template>\r\n"; });
 define('text!app.css', ['module'], function(module) { module.exports = "router-view {\n  flex: 1 0;\n  display: flex;\n  flex-direction: column;\n}\n"; });
-define('text!shell/shell.css', ['module'], function(module) { module.exports = ""; });
+define('text!shell/shell.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  flex: 1 1;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
 define('text!state/state-repository-chooser.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./state-repository-chooser.css\"></require>\r\n    <div class=\"header\">\r\n        <h1>Plotter Host</h1>\r\n        <h3>Choose Plotter Host:</h3>\r\n        <div class=\"input-group input-group-lg\">\r\n            <select class=\"form-control\" value.bind=\"state\">\r\n                <option model.bind=\"ss\" repeat.for=\"ss of states\">${ss.uniqueId}</option>\r\n            </select>\r\n            <span class=\"input-group-addon\" click.trigger=\"choose()\">\r\n                <i class=\"fa fa-arrow-circle-right fa-lg\"></i>\r\n            </span>\r\n        </div>\r\n    </div>\r\n    <div class=\"body\"></div>\r\n</template>"; });
 define('text!shell/state-repository-chooser.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  flex: 1 1;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
 define('text!state/state-session-chooser.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./state-repository-chooser.css\"></require>\r\n    <div class=\"header\">\r\n        <h1>Session Chooser (${stateRepoUniqueId}) </h1>\r\n        <p>${message} </p>\r\n        <h3>Choose Session:</h3>\r\n        <div class=\"input-group input-group-lg\">\r\n            <select class=\"form-control\" value.bind=\"sessionId\">\r\n                <option value.bind=\"s\" repeat.for=\"s of sessionList\">${s}</option>\r\n            </select>\r\n            <span class=\"input-group-addon\" click.trigger=\"choose()\">\r\n                <i class=\"fa fa-arrow-circle-right fa-lg\"></i>\r\n            </span>\r\n        </div>\r\n\r\n    </div>\r\n    <div class=\"body\"></div>\r\n</template>\r\n"; });
