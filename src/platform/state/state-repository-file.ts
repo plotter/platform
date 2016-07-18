@@ -27,7 +27,19 @@ export class StateRepositoryFile implements StateRepository {
         return Promise.resolve<PakDirectory>(new PakDirectory());
     }
     public getStateSession(sessionId) {
-        return Promise.resolve<StateSession>(new StateSession());
+        let that = this;
+        return new Promise<StateSession>((resolve, reject) => {
+            that.httpClient.fetch(`${that.path}/${that.uniqueId}/${sessionId}.json`)
+                .then(response => {
+                    return response.json();
+                })
+                .then(data => {
+                    resolve(StateSession.fromJSON(data));
+                })
+                .catch(reason => {
+                    reject(new Error(`fetch session list: reason: \r\n\r\n${reason}`));
+                });
+        });
     }
     public getSessionList() {
         let that = this;

@@ -4,6 +4,7 @@
         <h1>Shell (${hostId} / ${sessionId}) </h1>
     </div>
     <div class="body">
-        
+        <h1>Active Paks</h1>
+        <h3 repeat.for="activePak of session.activePaks">${activePak.uniqueId}</h3>
     </div>
 </template>

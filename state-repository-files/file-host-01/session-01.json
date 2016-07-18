@@ -1,0 +1,15 @@
+{
+    "locked": true,
+    "uniqueId": "session-01",
+    "activePaks": [
+        {
+            "locked": true,
+            "uniqueId": "a-pak1",
+            "viewInstances": [
+                { "viewId": "view1", "viewState": "{ a: 'hello, world (one)' }"},
+                { "viewId": "view1", "viewState": "{ a: 'hello, world (two)' }"},
+                { "viewId": "view2", "viewState": "{ a: 'hello, world (three)' }"}
+            ]
+        }
+    ]
+}
