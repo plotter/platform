@@ -15,7 +15,7 @@ export class PlatformStartup {
 
         return new Promise<StateDirectory>((resolve, reject) => {
 
-            let sdn = this.plotter.stateDirectoryName;
+            let sdn = that.plotter.stateDirectoryName;
 
             // check if sdn has prefix (service:, githubgist:myStateDir[.json], localstorage:)
             if (sdn.toLowerCase().startsWith('service:')) {

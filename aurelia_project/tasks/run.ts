@@ -1,5 +1,6 @@
 import * as gulp from 'gulp';
 import * as browserSync from 'browser-sync';
+import * as historyApiFallback from 'connect-history-api-fallback/lib';
 import * as project from '../aurelia.json';
 import build from './build';
 import {CLIOptions} from 'aurelia-cli';
@@ -20,14 +21,20 @@ let serve = gulp.series(
       online: false,
       open: false,
       port: 9000,
+      logLevel: 'silent',
       server: {
         baseDir: ['.'],
-        middleware: function(req, res, next) {
+        middleware: [historyApiFallback(), function(req, res, next) {
           res.setHeader('Access-Control-Allow-Origin', '*');
           next();
-        }
+        }]
       }
-    }, done);
+    }, function (err, bs) {
+      let urls = bs.options.get('urls').toJS();
+      console.log(`Application Available At: ${urls.local}`);
+      console.log(`BrowserSync Available At: ${urls.ui}`);
+      done();
+    });
   }
 );
 

@@ -55,8 +55,8 @@
   "build": {
     "targets": [
       {
-        "id": "default",
-        "displayName": "Default",
+        "id": "web",
+        "displayName": "Web",
         "output": "scripts"
       }
     ],

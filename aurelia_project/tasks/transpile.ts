@@ -29,8 +29,8 @@ function buildTypeScript() {
 
   let dts = gulp.src(project.transpiler.dtsSource);
 
-  let src = gulp.src(project.transpiler.source);
-    //.pipe(changedInPlace({firstPass: true}));
+  let src = gulp.src(project.transpiler.source)
+    .pipe(changedInPlace({firstPass: true}));
 
   return eventStream.merge(dts, src)
     .pipe(plumber({ errorHandler: notify.onError('Error: <%= error.message %>') }))
