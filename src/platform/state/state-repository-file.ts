@@ -24,7 +24,19 @@ export class StateRepositoryFile implements StateRepository {
     constructor(private httpClient: HttpClient) {}
 
     public getPakDirectory = () => {
-        return Promise.resolve<PakDirectory>(new PakDirectory());
+        let that = this;
+        return new Promise<PakDirectory>((resolve, reject) => {
+            that.httpClient.fetch(`${that.path}/${that.uniqueId}/pak-directory.json`)
+                .then(response => {
+                    return response.json();
+                })
+                .then(data => {
+                    resolve(PakDirectory.fromJSON(data));
+                })
+                .catch(reason => {
+                    reject(new Error(`fetch pak-directory failed: reason: \r\n\r\n${reason}`));
+                });
+        });
     }
     public getStateSession(sessionId) {
         let that = this;

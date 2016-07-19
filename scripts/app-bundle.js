@@ -1,14 +1,31 @@
-define('platform/pak/pak-directory',["require", "exports"], function (require, exports) {
+define('platform/pak/pak-directory',["require", "exports", 'aurelia-fetch-client', './pak-repository-file'], function (require, exports, aurelia_fetch_client_1, pak_repository_file_1) {
     "use strict";
     var PakDirectory = (function () {
         function PakDirectory() {
         }
         PakDirectory.fromJSON = function (json) {
             var pakDirectory = new PakDirectory();
+            pakDirectory.locked = json.locked;
+            pakDirectory.uniqueId = json.uniqueId;
+            pakDirectory.pakRepositories = json.pakRepositories.map(function (pakRepositoryJSON) {
+                switch (pakRepositoryJSON.pakRepositoryType) {
+                    case 'File':
+                        {
+                            var pakRepository = new pak_repository_file_1.PakRepositoryFile(new aurelia_fetch_client_1.HttpClient());
+                            pakRepository.locked = pakRepositoryJSON.locked;
+                            pakRepository.uniqueId = pakRepositoryJSON.uniqueId;
+                            pakRepository.pakRepositoryType = pakRepositoryJSON.pakRepositoryType;
+                            pakRepository.path = pakRepositoryJSON.path;
+                            return pakRepository;
+                        }
+                    default:
+                        throw new Error("repository " + pakRepositoryJSON.pakRepositoryType + " not supported.");
+                }
+            });
             return pakDirectory;
         };
         PakDirectory.prototype.toJSON = function () {
-            return JSON.stringify(this);
+            return JSON.parse(JSON.stringify(this));
         };
         return PakDirectory;
     }());
@@ -125,12 +142,25 @@ define('platform/state/state-repository-file',["require", "exports", 'aurelia-fr
     "use strict";
     var StateRepositoryFile = (function () {
         function StateRepositoryFile(httpClient) {
+            var _this = this;
             this.httpClient = httpClient;
             this.locked = false;
             this.uniqueId = 'state-repository';
             this.stateRepositoryType = 'File';
             this.getPakDirectory = function () {
-                return Promise.resolve(new pak_directory_1.PakDirectory());
+                var that = _this;
+                return new Promise(function (resolve, reject) {
+                    that.httpClient.fetch(that.path + "/" + that.uniqueId + "/pak-directory.json")
+                        .then(function (response) {
+                        return response.json();
+                    })
+                        .then(function (data) {
+                        resolve(pak_directory_1.PakDirectory.fromJSON(data));
+                    })
+                        .catch(function (reason) {
+                        reject(new Error("fetch pak-directory failed: reason: \r\n\r\n" + reason));
+                    });
+                });
             };
         }
         StateRepositoryFile.fromJSON = function (json) {
@@ -318,11 +348,13 @@ define('platform/platform-startup',["require", "exports", 'aurelia-framework', '
             return new Promise(function (resolve, reject) {
                 var sdn = that.plotter.stateDirectoryName;
                 if (sdn.toLowerCase().startsWith('service:')) {
+                    reject('service not supported yet.');
                 }
                 else if (sdn.toLowerCase().startsWith('githubgist:')) {
                     reject('githubgist not supported yet.');
                 }
                 else if (sdn.toLowerCase().startsWith('localstorage:')) {
+                    reject('localstorage not supported yet.');
                 }
                 else {
                     that.httpClient.fetch(sdn + ".json")
@@ -400,7 +432,7 @@ define('environment',["require", "exports"], function (require, exports) {
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.default = {
         debug: true,
-        testing: true
+        testing: true,
     };
 });
 
@@ -553,11 +585,20 @@ define('state/state-session-chooser',["require", "exports", 'aurelia-framework',
 
 define("platform/pak/pak-provider-service", [],function(){});
 
-define('platform/pak/pak',["require", "exports"], function (require, exports) {
+define('platform/pak/pak',["require", "exports", './view'], function (require, exports, view_1) {
     "use strict";
     var Pak = (function () {
         function Pak() {
         }
+        Pak.fromJSON = function (json) {
+            var pak = new Pak();
+            pak.locked = json.locked;
+            pak.uniqueId = json.uniqueId;
+            pak.views = json.views.map(function (view) {
+                return view_1.View.fromJSON(view);
+            });
+            return pak;
+        };
         return Pak;
     }());
     exports.Pak = Pak;
@@ -660,13 +701,76 @@ define('../test/unit/platform/platform-startup.spec',["require", "exports", 'aur
     });
 });
 
+define('platform/pak/pak-repository-file',["require", "exports", './pak'], function (require, exports, pak_1) {
+    "use strict";
+    var PakRepositoryFile = (function () {
+        function PakRepositoryFile(httpClient) {
+            var _this = this;
+            this.httpClient = httpClient;
+            this.locked = false;
+            this.uniqueId = 'state-provider';
+            this.pakRepositoryType = 'File';
+            this.getPak = function (pakId) {
+                var that = _this;
+                return new Promise(function (resolve, reject) {
+                    that.httpClient.fetch(that.path + "/" + that.uniqueId + "/" + pakId + ".json")
+                        .then(function (response) {
+                        return response.json();
+                    })
+                        .then(function (data) {
+                        resolve(pak_1.Pak.fromJSON(data));
+                    })
+                        .catch(function (reason) {
+                        reject(new Error("fetch session list: reason: \r\n\r\n" + reason));
+                    });
+                });
+            };
+            this.getPakList = function () {
+                var that = _this;
+                return new Promise(function (resolve, reject) {
+                    that.httpClient.fetch(that.path + "/" + that.uniqueId + "/pak-list.json")
+                        .then(function (response) {
+                        return response.json();
+                    })
+                        .then(function (data) {
+                        resolve(data.pakList);
+                    })
+                        .catch(function (reason) {
+                        reject(new Error("fetch pak list failed: reason: \r\n\r\n" + reason));
+                    });
+                });
+            };
+        }
+        return PakRepositoryFile;
+    }());
+    exports.PakRepositoryFile = PakRepositoryFile;
+});
+
+define('platform/pak/view',["require", "exports"], function (require, exports) {
+    "use strict";
+    var View = (function () {
+        function View() {
+        }
+        View.fromJSON = function (json) {
+            var view = new View();
+            view.locked = json.locked;
+            view.uniqueId = json.uniqueId;
+            view.pane = json.pane;
+            view.moduleUrl = json.moduleUrl;
+            return view;
+        };
+        return View;
+    }());
+    exports.View = View;
+});
+
 define('text!app.html', ['module'], function(module) { module.exports = "<template>\n  <require from=\"app.css\"></require>\n  <router-view></router-view>\n</template>\n"; });
 define('text!app.css', ['module'], function(module) { module.exports = "router-view {\n  flex: 1 0;\n  display: flex;\n  flex-direction: column;\n}\n"; });
-define('text!shell/shell.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./shell.css\"></require>\r\n    <div class=\"header\">\r\n        <h1>Shell (${hostId} / ${sessionId}) </h1>\r\n    </div>\r\n    <div class=\"body\">\r\n        <h1>Active Paks</h1>\r\n        <h3 repeat.for=\"activePak of session.activePaks\">${activePak.uniqueId}</h3>\r\n    </div>\r\n</template>\r\n"; });
 define('text!state/state-repository-chooser.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./state-repository-chooser.css\"></require>\r\n    <div class=\"header\">\r\n        <h1>Plotter Host</h1>\r\n        <h3>Choose Plotter Host:</h3>\r\n        <div class=\"input-group input-group-lg\">\r\n            <select class=\"form-control\" value.bind=\"state\">\r\n                <option model.bind=\"ss\" repeat.for=\"ss of states\">${ss.uniqueId}</option>\r\n            </select>\r\n            <span class=\"input-group-addon\" click.trigger=\"choose()\">\r\n                <i class=\"fa fa-arrow-circle-right fa-lg\"></i>\r\n            </span>\r\n        </div>\r\n    </div>\r\n    <div class=\"body\"></div>\r\n</template>"; });
-define('text!shell/shell.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  flex: 1 1;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
-define('text!state/state-session-chooser.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./state-repository-chooser.css\"></require>\r\n    <div class=\"header\">\r\n        <h1>Session Chooser (${stateRepoUniqueId}) </h1>\r\n        <p>${message} </p>\r\n        <h3>Choose Session:</h3>\r\n        <div class=\"input-group input-group-lg\">\r\n            <select class=\"form-control\" value.bind=\"sessionId\">\r\n                <option value.bind=\"s\" repeat.for=\"s of sessionList\">${s}</option>\r\n            </select>\r\n            <span class=\"input-group-addon\" click.trigger=\"choose()\">\r\n                <i class=\"fa fa-arrow-circle-right fa-lg\"></i>\r\n            </span>\r\n        </div>\r\n\r\n    </div>\r\n    <div class=\"body\"></div>\r\n</template>\r\n"; });
-define('text!shell/state-repository-chooser.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  flex: 1 1;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
 define('text!state/state-repository-chooser.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  flex: 1 1;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
+define('text!state/state-session-chooser.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./state-repository-chooser.css\"></require>\r\n    <div class=\"header\">\r\n        <h1>Session Chooser (${stateRepoUniqueId}) </h1>\r\n        <p>${message} </p>\r\n        <h3>Choose Session:</h3>\r\n        <div class=\"input-group input-group-lg\">\r\n            <select class=\"form-control\" value.bind=\"sessionId\">\r\n                <option value.bind=\"s\" repeat.for=\"s of sessionList\">${s}</option>\r\n            </select>\r\n            <span class=\"input-group-addon\" click.trigger=\"choose()\">\r\n                <i class=\"fa fa-arrow-circle-right fa-lg\"></i>\r\n            </span>\r\n        </div>\r\n\r\n    </div>\r\n    <div class=\"body\"></div>\r\n</template>\r\n"; });
 define('text!state/state-session-chooser.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  flex: 1 1;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
+define('text!shell/shell.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./shell.css\"></require>\r\n    <div class=\"header\">\r\n        <h1>Shell (${hostId} / ${sessionId}) </h1>\r\n    </div>\r\n    <div class=\"body\">\r\n        <h1>Active Paks</h1>\r\n        <h3 repeat.for=\"activePak of session.activePaks\">${activePak.uniqueId}</h3>\r\n    </div>\r\n</template>\r\n"; });
+define('text!shell/shell.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  flex: 1 1;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
+define('text!shell/state-repository-chooser.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  flex: 1 1;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
 //# sourceMappingURL=app-bundle.js.map

@@ -1,8 +1,6 @@
 import { inject } from 'aurelia-framework';
 import { HttpClient } from 'aurelia-fetch-client';
 import { StateDirectory } from './state/state-directory';
-import { StateRepository } from './state/state-repository';
-import { StateRepositoryLocalStorage } from './state/state-repository-local-storage';
 import { Plotter } from './plotter';
 
 @inject(HttpClient, Plotter)
@@ -19,13 +17,13 @@ export class PlatformStartup {
 
             // check if sdn has prefix (service:, githubgist:myStateDir[.json], localstorage:)
             if (sdn.toLowerCase().startsWith('service:')) {
-
+                reject('service not supported yet.');
             } else
                 if (sdn.toLowerCase().startsWith('githubgist:')) {
                     reject('githubgist not supported yet.');
                 } else
                     if (sdn.toLowerCase().startsWith('localstorage:')) {
-
+                        reject('localstorage not supported yet.');
                     } else {
 
                         // check if (and use) platform origin has state-directory

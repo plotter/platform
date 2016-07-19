@@ -1,5 +1,4 @@
 import { HttpClient } from 'aurelia-fetch-client';
-import { StateDirectory } from '../../../src/platform/state/state-directory';
 import { PlatformStartup } from '../../../src/platform/platform-startup';
 import { Plotter } from '../../../src/platform/plotter';
 
