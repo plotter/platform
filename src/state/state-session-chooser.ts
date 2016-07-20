@@ -31,7 +31,13 @@ export class StateSessionChooser {
     }
 
     public choose() {
-        // route to session chooser
+        if (!this.sessionId) {
+            // route to new-session
+            this.router.navigateToRoute('newSession', { hostId: this.stateRepoUniqueId });
+            return;
+        }
+
+        // route to shell
         this.stateDirectory.getStateSession(this.stateRepoUniqueId, this.sessionId)
             .then(stateSession => {
                 this.plotter.stateSession = stateSession;

@@ -1,0 +1,12 @@
+<template>
+    <require from="./new-session.css"></require>
+    <div class="header">
+        <h1>New Session on ${hostId}</h1>
+    </div>
+    <div class="body">
+        <div repeat.for="pakRepo of pakDirectory.pakRepositories">
+            <h3>${pakRepo.uniqueId}</h3>
+            <p repeat.for="pakId of pakRepo.pakList">&nbsp;&nbsp;&nbsp;&nbsp;<label><input type="checkbox" value.bind="pakId"> ${pakId}</label></p>
+        </div>
+    </div>
+</template>

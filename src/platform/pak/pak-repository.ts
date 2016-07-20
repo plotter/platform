@@ -5,6 +5,7 @@ export interface PakRepository {
     locked: boolean;
     uniqueId: string;
     pakDirectory: PakDirectory;
+    pakList: string[];
     getPak(pakId: string): Promise<Pak>;
     getPakList(): Promise<string[]>;
 }

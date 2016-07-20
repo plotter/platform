@@ -9,6 +9,7 @@ export class PakRepositoryFile implements PakRepository {
     public pakRepositoryType: PakRepositoryType = 'File';
     public pakDirectory: PakDirectory;
     public path: string;
+    public pakList: string[];
 
     constructor(private httpClient: HttpClient) {}
 
@@ -38,6 +39,7 @@ export class PakRepositoryFile implements PakRepository {
                     return response.json();
                 })
                 .then(data => {
+                    that.pakList = data.pakList;
                     resolve(<string[]> data.pakList);
                 })
                 .catch(reason => {

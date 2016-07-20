@@ -6,6 +6,7 @@
         <h3>Choose Session:</h3>
         <div class="input-group input-group-lg">
             <select class="form-control" value.bind="sessionId">
+                <option value.bind="''">(New Session)</option>
                 <option value.bind="s" repeat.for="s of sessionList">${s}</option>
             </select>
             <span class="input-group-addon" click.trigger="choose()">
