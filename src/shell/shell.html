@@ -5,6 +5,11 @@
     </div>
     <div class="body">
         <h1>Active Paks</h1>
-        <h3 repeat.for="activePak of session.activePaks">${activePak.uniqueId}</h3>
+        <div repeat.for="activePak of session.activePaks">
+            <h3>${activePak.uniqueId}: [${activePak.pakHostId} / ${activePak.pakId}]</h3>
+            <ul if.bind="activePak.pak">
+                <li repeat.for="view of activePak.pak.views">${view.uniqueId}</li>
+            </ul>
+            <p if.bind="!activePak.pak">loading...</p>
     </div>
 </template>

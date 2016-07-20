@@ -1,15 +1,21 @@
 {
     "locked": true,
-    "uniqueId": "session-01",
-    "paks": [
+    "uniqueId": "pak-01",
+    "views": [
         {
-            "locked": true,
-            "uniqueId": "a-pak1",
-            "views": [
-                { "uniqueId": "view1", "pane": "main", "moduleUrl": "http://plotter.github.io/platform/paks/pak-01/views/view1"},
-                { "uniqueId": "view2", "pane": "main", "moduleUrl": "http://plotter.github.io/platform/paks/pak-01/views/view2"},
-                { "uniqueId": "view3", "pane": "nav", "moduleUrl": "http://plotter.github.io/platform/paks/pak-01/views/view3"}
-            ]
+            "uniqueId": "view1",
+            "pane": "main",
+            "moduleUrl": "http://plotter.github.io/platform/paks/pak-01/views/view1"
+        },
+        {
+            "uniqueId": "view2",
+            "pane": "main",
+            "moduleUrl": "http://plotter.github.io/platform/paks/pak-01/views/view2"
+        },
+        {
+            "uniqueId": "view3",
+            "pane": "nav",
+            "moduleUrl": "http://plotter.github.io/platform/paks/pak-01/views/view3"
         }
     ]
 }

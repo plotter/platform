@@ -5,6 +5,8 @@
         {
             "locked": true,
             "uniqueId": "a-pak1",
+            "pakHostId": "pak-host-01",
+            "pakId": "pak-01",
             "viewInstances": [
                 { "viewId": "view1", "viewState": "{ a: 'hello, world (one)' }"},
                 { "viewId": "view1", "viewState": "{ a: 'hello, world (two)' }"},

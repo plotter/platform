@@ -148,12 +148,33 @@ define('platform/state/active-pak',["require", "exports", './view-instance'], fu
             var activePak = new ActivePak();
             activePak.locked = json.locked;
             activePak.uniqueId = json.uniqueId;
+            activePak.pakHostId = json.pakHostId;
+            activePak.pakId = json.pakId;
             activePak.viewInstances = json.viewInstances.map(function (viewInstanceJson) {
                 var viewInstance = view_instance_1.ViewInstance.fromJSON(viewInstanceJson);
                 viewInstance.activePak = activePak;
                 return viewInstance;
             });
+            setTimeout(function () { return activePak.getPak(); }, 3000);
             return activePak;
+        };
+        ActivePak.prototype.getPak = function () {
+            var that = this;
+            return that.stateSession.stateRepository.getPakDirectory()
+                .then(function (pakDirectory) {
+                var pakHosts = pakDirectory.pakRepositories.filter(function (pr) { return pr.uniqueId === that.pakHostId; });
+                if (pakHosts.length >= 1) {
+                    var pakHost = pakHosts[0];
+                    return pakHost.getPak(that.pakId)
+                        .then(function (pak) {
+                        that.pak = pak;
+                        return pak;
+                    });
+                }
+                else {
+                    throw (new Error("Failed to get pak - couldn't find pakHost(" + that.pakHostId + ")"));
+                }
+            });
         };
         return ActivePak;
     }());
@@ -760,7 +781,7 @@ define('state/new-session',["require", "exports", 'aurelia-framework', '../platf
 });
 
 define('text!app.html', ['module'], function(module) { module.exports = "<template>\n  <require from=\"app.css\"></require>\n  <router-view></router-view>\n</template>\n"; });
-define('text!shell/shell.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./shell.css\"></require>\r\n    <div class=\"header\">\r\n        <h1>Shell (${hostId} / ${sessionId}) </h1>\r\n    </div>\r\n    <div class=\"body\">\r\n        <h1>Active Paks</h1>\r\n        <h3 repeat.for=\"activePak of session.activePaks\">${activePak.uniqueId}</h3>\r\n    </div>\r\n</template>\r\n"; });
+define('text!shell/shell.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./shell.css\"></require>\r\n    <div class=\"header\">\r\n        <h1>Shell (${hostId} / ${sessionId}) </h1>\r\n    </div>\r\n    <div class=\"body\">\r\n        <h1>Active Paks</h1>\r\n        <div repeat.for=\"activePak of session.activePaks\">\r\n            <h3>${activePak.uniqueId}: [${activePak.pakHostId} / ${activePak.pakId}]</h3>\r\n            <ul if.bind=\"activePak.pak\">\r\n                <li repeat.for=\"view of activePak.pak.views\">${view.uniqueId}</li>\r\n            </ul>\r\n            <p if.bind=\"!activePak.pak\">loading...</p>\r\n    </div>\r\n</template>\r\n"; });
 define('text!app.css', ['module'], function(module) { module.exports = "router-view {\n  flex: 1 0;\n  display: flex;\n  flex-direction: column;\n}\n"; });
 define('text!state/state-repository-chooser.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./state-repository-chooser.css\"></require>\r\n    <div class=\"header\">\r\n        <h1>Plotter Host</h1>\r\n        <h3>Choose Plotter Host:</h3>\r\n        <div class=\"input-group input-group-lg\">\r\n            <select class=\"form-control\" value.bind=\"state\">\r\n                <option model.bind=\"ss\" repeat.for=\"ss of states\">${ss.uniqueId}</option>\r\n            </select>\r\n            <span class=\"input-group-addon\" click.trigger=\"choose()\">\r\n                <i class=\"fa fa-arrow-circle-right fa-lg\"></i>\r\n            </span>\r\n        </div>\r\n    </div>\r\n    <div class=\"body\"></div>\r\n</template>"; });
 define('text!shell/shell.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  flex: 1 1;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
