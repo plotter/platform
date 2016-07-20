@@ -1,3 +1,5 @@
+import { Pak } from './pak';
+
 export class View {
     public static fromJSON(json: ViewJSON): View {
         let view = new View();
@@ -12,6 +14,7 @@ export class View {
     public uniqueId: string;
     public pane: PaneType;
     public moduleUrl: string;
+    public pak: Pak;
 }
 
 export type PaneType = 'nav' | 'main' | 'alt';

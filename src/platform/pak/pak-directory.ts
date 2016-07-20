@@ -1,6 +1,7 @@
 import { HttpClient } from 'aurelia-fetch-client';
 import { PakRepository, PakRepositoryJSON } from './pak-repository';
 import { PakRepositoryFile } from './pak-repository-file';
+import { StateRepository } from '../state/state-repository';
 
 export class PakDirectory {
     public static fromJSON(json: PakDirectoryJSON): PakDirectory {
@@ -17,6 +18,7 @@ export class PakDirectory {
                         pakRepository.uniqueId = pakRepositoryJSON.uniqueId;
                         pakRepository.pakRepositoryType = pakRepositoryJSON.pakRepositoryType;
                         pakRepository.path = pakRepositoryJSON.path;
+                        pakRepository.pakDirectory = pakDirectory;
                         return pakRepository;
                     }
 
@@ -30,6 +32,7 @@ export class PakDirectory {
     public locked: boolean;
     public uniqueId: string;
     public pakRepositories: PakRepository[];
+    public stateRepository: StateRepository;
 
     public toJSON(): PakDirectoryJSON {
         return JSON.parse(JSON.stringify(this));

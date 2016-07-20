@@ -1,8 +1,10 @@
 import { Pak } from './pak';
+import { PakDirectory } from './pak-directory';
 
 export interface PakRepository {
     locked: boolean;
     uniqueId: string;
+    pakDirectory: PakDirectory;
     getPak(pakId: string): Promise<Pak>;
     getPakList(): Promise<string[]>;
 }

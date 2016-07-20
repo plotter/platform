@@ -1,3 +1,93 @@
+define('platform/pak/view',["require", "exports"], function (require, exports) {
+    "use strict";
+    var View = (function () {
+        function View() {
+        }
+        View.fromJSON = function (json) {
+            var view = new View();
+            view.locked = json.locked;
+            view.uniqueId = json.uniqueId;
+            view.pane = json.pane;
+            view.moduleUrl = json.moduleUrl;
+            return view;
+        };
+        return View;
+    }());
+    exports.View = View;
+});
+
+define('platform/pak/pak',["require", "exports", './view'], function (require, exports, view_1) {
+    "use strict";
+    var Pak = (function () {
+        function Pak() {
+        }
+        Pak.fromJSON = function (json) {
+            var pak = new Pak();
+            pak.locked = json.locked;
+            pak.uniqueId = json.uniqueId;
+            pak.views = json.views.map(function (viewJson) {
+                var view = view_1.View.fromJSON(viewJson);
+                view.pak = pak;
+                return view;
+            });
+            return pak;
+        };
+        return Pak;
+    }());
+    exports.Pak = Pak;
+});
+
+define('platform/pak/pak-repository',["require", "exports"], function (require, exports) {
+    "use strict";
+});
+
+define('platform/pak/pak-repository-file',["require", "exports", './pak'], function (require, exports, pak_1) {
+    "use strict";
+    var PakRepositoryFile = (function () {
+        function PakRepositoryFile(httpClient) {
+            var _this = this;
+            this.httpClient = httpClient;
+            this.locked = false;
+            this.uniqueId = 'state-provider';
+            this.pakRepositoryType = 'File';
+            this.getPak = function (pakId) {
+                var that = _this;
+                return new Promise(function (resolve, reject) {
+                    that.httpClient.fetch(that.path + "/" + that.uniqueId + "/" + pakId + ".json")
+                        .then(function (response) {
+                        return response.json();
+                    })
+                        .then(function (data) {
+                        var pak = pak_1.Pak.fromJSON(data);
+                        pak.pakRepository = that;
+                        resolve(pak);
+                    })
+                        .catch(function (reason) {
+                        reject(new Error("fetch session list: reason: \r\n\r\n" + reason));
+                    });
+                });
+            };
+            this.getPakList = function () {
+                var that = _this;
+                return new Promise(function (resolve, reject) {
+                    that.httpClient.fetch(that.path + "/" + that.uniqueId + "/pak-list.json")
+                        .then(function (response) {
+                        return response.json();
+                    })
+                        .then(function (data) {
+                        resolve(data.pakList);
+                    })
+                        .catch(function (reason) {
+                        reject(new Error("fetch pak list failed: reason: \r\n\r\n" + reason));
+                    });
+                });
+            };
+        }
+        return PakRepositoryFile;
+    }());
+    exports.PakRepositoryFile = PakRepositoryFile;
+});
+
 define('platform/pak/pak-directory',["require", "exports", 'aurelia-fetch-client', './pak-repository-file'], function (require, exports, aurelia_fetch_client_1, pak_repository_file_1) {
     "use strict";
     var PakDirectory = (function () {
@@ -16,6 +106,7 @@ define('platform/pak/pak-directory',["require", "exports", 'aurelia-fetch-client
                             pakRepository.uniqueId = pakRepositoryJSON.uniqueId;
                             pakRepository.pakRepositoryType = pakRepositoryJSON.pakRepositoryType;
                             pakRepository.path = pakRepositoryJSON.path;
+                            pakRepository.pakDirectory = pakDirectory;
                             return pakRepository;
                         }
                     default:
@@ -56,8 +147,10 @@ define('platform/state/active-pak',["require", "exports", './view-instance'], fu
             var activePak = new ActivePak();
             activePak.locked = json.locked;
             activePak.uniqueId = json.uniqueId;
-            activePak.viewInstances = json.viewInstances.map(function (viewInstance) {
-                return view_instance_1.ViewInstance.fromJSON(viewInstance);
+            activePak.viewInstances = json.viewInstances.map(function (viewInstanceJson) {
+                var viewInstance = view_instance_1.ViewInstance.fromJSON(viewInstanceJson);
+                viewInstance.activePak = activePak;
+                return viewInstance;
             });
             return activePak;
         };
@@ -76,8 +169,10 @@ define('platform/state/state-session',["require", "exports", './active-pak'], fu
             var stateSession = new StateSession();
             stateSession.locked = json.locked;
             stateSession.uniqueId = json.uniqueId;
-            stateSession.activePaks = json.activePaks.map(function (activePak) {
-                return active_pak_1.ActivePak.fromJSON(activePak);
+            stateSession.activePaks = json.activePaks.map(function (activePakJson) {
+                var activePak = active_pak_1.ActivePak.fromJSON(activePakJson);
+                activePak.stateSession = stateSession;
+                return activePak;
             });
             return stateSession;
         };
@@ -90,44 +185,9 @@ define('platform/state/state-repository',["require", "exports"], function (requi
     "use strict";
 });
 
-define('platform/state/state-repository-local-storage',["require", "exports", '../pak/pak-directory', './state-session'], function (require, exports, pak_directory_1, state_session_1) {
-    "use strict";
-    var StateRepositoryLocalStorage = (function () {
-        function StateRepositoryLocalStorage() {
-            this.locked = false;
-            this.uniqueId = 'state-repository';
-            this.stateRepositoryType = 'LocalStorage';
-            this.getPakDirectory = function () {
-                return Promise.resolve(new pak_directory_1.PakDirectory());
-            };
-        }
-        StateRepositoryLocalStorage.fromJSON = function (json) {
-            var stateRepository = new StateRepositoryLocalStorage();
-            stateRepository.locked = json.locked;
-            stateRepository.uniqueId = json.uniqueId;
-            stateRepository.stateRepositoryType = json.stateRepositoryType;
-            return stateRepository;
-        };
-        StateRepositoryLocalStorage.prototype.getStateSession = function (sessionId) {
-            return Promise.resolve(new state_session_1.StateSession());
-        };
-        StateRepositoryLocalStorage.prototype.getSessionList = function () {
-            return new Promise(function (resolve, reject) {
-                resolve(['A', 'B', 'C']);
-            });
-        };
-        StateRepositoryLocalStorage.prototype.toJSON = function () {
-            return {
-                locked: this.locked,
-                stateRepositoryType: this.stateRepositoryType,
-                uniqueId: this.uniqueId,
-                path: null,
-            };
-        };
-        return StateRepositoryLocalStorage;
-    }());
-    exports.StateRepositoryLocalStorage = StateRepositoryLocalStorage;
-});
+
+
+define("platform/state/state-repository-local-storage", [],function(){});
 
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -155,7 +215,9 @@ define('platform/state/state-repository-file',["require", "exports", 'aurelia-fr
                         return response.json();
                     })
                         .then(function (data) {
-                        resolve(pak_directory_1.PakDirectory.fromJSON(data));
+                        var pakDirectory = pak_directory_1.PakDirectory.fromJSON(data);
+                        pakDirectory.stateRepository = that;
+                        resolve(pakDirectory);
                     })
                         .catch(function (reason) {
                         reject(new Error("fetch pak-directory failed: reason: \r\n\r\n" + reason));
@@ -179,7 +241,9 @@ define('platform/state/state-repository-file',["require", "exports", 'aurelia-fr
                     return response.json();
                 })
                     .then(function (data) {
-                    resolve(state_session_1.StateSession.fromJSON(data));
+                    var stateSession = state_session_1.StateSession.fromJSON(data);
+                    stateSession.stateRepository = that;
+                    resolve(stateSession);
                 })
                     .catch(function (reason) {
                     reject(new Error("fetch session list: reason: \r\n\r\n" + reason));
@@ -218,7 +282,7 @@ define('platform/state/state-repository-file',["require", "exports", 'aurelia-fr
     exports.StateRepositoryFile = StateRepositoryFile;
 });
 
-define('platform/state/state-directory',["require", "exports", 'aurelia-fetch-client', './state-repository-local-storage', './state-repository-file'], function (require, exports, aurelia_fetch_client_1, state_repository_local_storage_1, state_repository_file_1) {
+define('platform/state/state-directory',["require", "exports", 'aurelia-fetch-client', './state-repository-file'], function (require, exports, aurelia_fetch_client_1, state_repository_file_1) {
     "use strict";
     var StateDirectory = (function () {
         function StateDirectory() {
@@ -229,14 +293,6 @@ define('platform/state/state-directory',["require", "exports", 'aurelia-fetch-cl
             stateDirectory.uniqueId = json.uniqueId;
             stateDirectory.stateRepositories = json.stateRepositories.map(function (stateRepositoryJSON) {
                 switch (stateRepositoryJSON.stateRepositoryType) {
-                    case 'LocalStorage':
-                        {
-                            var stateRepository = new state_repository_local_storage_1.StateRepositoryLocalStorage();
-                            stateRepository.locked = stateRepositoryJSON.locked;
-                            stateRepository.uniqueId = stateRepositoryJSON.uniqueId;
-                            stateRepository.stateRepositoryType = stateRepositoryJSON.stateRepositoryType;
-                            return stateRepository;
-                        }
                     case 'File':
                         {
                             var stateRepository = new state_repository_file_1.StateRepositoryFile(new aurelia_fetch_client_1.HttpClient());
@@ -244,6 +300,7 @@ define('platform/state/state-directory',["require", "exports", 'aurelia-fetch-cl
                             stateRepository.uniqueId = stateRepositoryJSON.uniqueId;
                             stateRepository.stateRepositoryType = stateRepositoryJSON.stateRepositoryType;
                             stateRepository.path = stateRepositoryJSON.path;
+                            stateRepository.stateDirectory = stateDirectory;
                             return stateRepository;
                         }
                     default:
@@ -585,47 +642,6 @@ define('state/state-session-chooser',["require", "exports", 'aurelia-framework',
 
 define("platform/pak/pak-provider-service", [],function(){});
 
-define('platform/pak/pak',["require", "exports", './view'], function (require, exports, view_1) {
-    "use strict";
-    var Pak = (function () {
-        function Pak() {
-        }
-        Pak.fromJSON = function (json) {
-            var pak = new Pak();
-            pak.locked = json.locked;
-            pak.uniqueId = json.uniqueId;
-            pak.views = json.views.map(function (view) {
-                return view_1.View.fromJSON(view);
-            });
-            return pak;
-        };
-        return Pak;
-    }());
-    exports.Pak = Pak;
-});
-
-define('platform/pak/pak-repository',["require", "exports"], function (require, exports) {
-    "use strict";
-});
-
-define('platform/pak/pak-repository-local-storage',["require", "exports", './pak'], function (require, exports, pak_1) {
-    "use strict";
-    var PakRepositoryLocalStorage = (function () {
-        function PakRepositoryLocalStorage() {
-            this.locked = false;
-            this.uniqueId = 'state-provider';
-            this.getPak = function (pakId) {
-                return new pak_1.Pak();
-            };
-            this.getPaks = function () {
-                return [];
-            };
-        }
-        return PakRepositoryLocalStorage;
-    }());
-    exports.PakRepositoryLocalStorage = PakRepositoryLocalStorage;
-});
-
 define('platform/state/state-repository-github-gist',["require", "exports"], function (require, exports) {
     "use strict";
     var StateRepositoryGitHubGist = (function () {
@@ -701,76 +717,13 @@ define('../test/unit/platform/platform-startup.spec',["require", "exports", 'aur
     });
 });
 
-define('platform/pak/pak-repository-file',["require", "exports", './pak'], function (require, exports, pak_1) {
-    "use strict";
-    var PakRepositoryFile = (function () {
-        function PakRepositoryFile(httpClient) {
-            var _this = this;
-            this.httpClient = httpClient;
-            this.locked = false;
-            this.uniqueId = 'state-provider';
-            this.pakRepositoryType = 'File';
-            this.getPak = function (pakId) {
-                var that = _this;
-                return new Promise(function (resolve, reject) {
-                    that.httpClient.fetch(that.path + "/" + that.uniqueId + "/" + pakId + ".json")
-                        .then(function (response) {
-                        return response.json();
-                    })
-                        .then(function (data) {
-                        resolve(pak_1.Pak.fromJSON(data));
-                    })
-                        .catch(function (reason) {
-                        reject(new Error("fetch session list: reason: \r\n\r\n" + reason));
-                    });
-                });
-            };
-            this.getPakList = function () {
-                var that = _this;
-                return new Promise(function (resolve, reject) {
-                    that.httpClient.fetch(that.path + "/" + that.uniqueId + "/pak-list.json")
-                        .then(function (response) {
-                        return response.json();
-                    })
-                        .then(function (data) {
-                        resolve(data.pakList);
-                    })
-                        .catch(function (reason) {
-                        reject(new Error("fetch pak list failed: reason: \r\n\r\n" + reason));
-                    });
-                });
-            };
-        }
-        return PakRepositoryFile;
-    }());
-    exports.PakRepositoryFile = PakRepositoryFile;
-});
-
-define('platform/pak/view',["require", "exports"], function (require, exports) {
-    "use strict";
-    var View = (function () {
-        function View() {
-        }
-        View.fromJSON = function (json) {
-            var view = new View();
-            view.locked = json.locked;
-            view.uniqueId = json.uniqueId;
-            view.pane = json.pane;
-            view.moduleUrl = json.moduleUrl;
-            return view;
-        };
-        return View;
-    }());
-    exports.View = View;
-});
-
 define('text!app.html', ['module'], function(module) { module.exports = "<template>\n  <require from=\"app.css\"></require>\n  <router-view></router-view>\n</template>\n"; });
+define('text!shell/shell.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./shell.css\"></require>\r\n    <div class=\"header\">\r\n        <h1>Shell (${hostId} / ${sessionId}) </h1>\r\n    </div>\r\n    <div class=\"body\">\r\n        <h1>Active Paks</h1>\r\n        <h3 repeat.for=\"activePak of session.activePaks\">${activePak.uniqueId}</h3>\r\n    </div>\r\n</template>\r\n"; });
 define('text!app.css', ['module'], function(module) { module.exports = "router-view {\n  flex: 1 0;\n  display: flex;\n  flex-direction: column;\n}\n"; });
 define('text!state/state-repository-chooser.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./state-repository-chooser.css\"></require>\r\n    <div class=\"header\">\r\n        <h1>Plotter Host</h1>\r\n        <h3>Choose Plotter Host:</h3>\r\n        <div class=\"input-group input-group-lg\">\r\n            <select class=\"form-control\" value.bind=\"state\">\r\n                <option model.bind=\"ss\" repeat.for=\"ss of states\">${ss.uniqueId}</option>\r\n            </select>\r\n            <span class=\"input-group-addon\" click.trigger=\"choose()\">\r\n                <i class=\"fa fa-arrow-circle-right fa-lg\"></i>\r\n            </span>\r\n        </div>\r\n    </div>\r\n    <div class=\"body\"></div>\r\n</template>"; });
-define('text!state/state-repository-chooser.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  flex: 1 1;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
-define('text!state/state-session-chooser.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./state-repository-chooser.css\"></require>\r\n    <div class=\"header\">\r\n        <h1>Session Chooser (${stateRepoUniqueId}) </h1>\r\n        <p>${message} </p>\r\n        <h3>Choose Session:</h3>\r\n        <div class=\"input-group input-group-lg\">\r\n            <select class=\"form-control\" value.bind=\"sessionId\">\r\n                <option value.bind=\"s\" repeat.for=\"s of sessionList\">${s}</option>\r\n            </select>\r\n            <span class=\"input-group-addon\" click.trigger=\"choose()\">\r\n                <i class=\"fa fa-arrow-circle-right fa-lg\"></i>\r\n            </span>\r\n        </div>\r\n\r\n    </div>\r\n    <div class=\"body\"></div>\r\n</template>\r\n"; });
-define('text!state/state-session-chooser.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  flex: 1 1;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
-define('text!shell/shell.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./shell.css\"></require>\r\n    <div class=\"header\">\r\n        <h1>Shell (${hostId} / ${sessionId}) </h1>\r\n    </div>\r\n    <div class=\"body\">\r\n        <h1>Active Paks</h1>\r\n        <h3 repeat.for=\"activePak of session.activePaks\">${activePak.uniqueId}</h3>\r\n    </div>\r\n</template>\r\n"; });
 define('text!shell/shell.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  flex: 1 1;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
+define('text!state/state-session-chooser.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./state-repository-chooser.css\"></require>\r\n    <div class=\"header\">\r\n        <h1>Session Chooser (${stateRepoUniqueId}) </h1>\r\n        <p>${message} </p>\r\n        <h3>Choose Session:</h3>\r\n        <div class=\"input-group input-group-lg\">\r\n            <select class=\"form-control\" value.bind=\"sessionId\">\r\n                <option value.bind=\"s\" repeat.for=\"s of sessionList\">${s}</option>\r\n            </select>\r\n            <span class=\"input-group-addon\" click.trigger=\"choose()\">\r\n                <i class=\"fa fa-arrow-circle-right fa-lg\"></i>\r\n            </span>\r\n        </div>\r\n\r\n    </div>\r\n    <div class=\"body\"></div>\r\n</template>\r\n"; });
 define('text!shell/state-repository-chooser.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  flex: 1 1;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
+define('text!state/state-repository-chooser.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  flex: 1 1;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
+define('text!state/state-session-chooser.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  flex: 1 1;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
 //# sourceMappingURL=app-bundle.js.map

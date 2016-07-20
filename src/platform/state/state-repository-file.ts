@@ -3,6 +3,7 @@ import { HttpClient } from 'aurelia-fetch-client';
 import { StateRepository, StateRepositoryType, StateRepositoryJSON } from './state-repository';
 import { PakDirectory } from '../pak/pak-directory';
 import { StateSession } from './state-session';
+import { StateDirectory } from './state-directory';
 
 @inject(HttpClient)
 export class StateRepositoryFile implements StateRepository {
@@ -19,6 +20,7 @@ export class StateRepositoryFile implements StateRepository {
     public locked = false;
     public uniqueId = 'state-repository';
     public stateRepositoryType: StateRepositoryType = 'File';
+    public stateDirectory: StateDirectory;
     public path: string;
 
     constructor(private httpClient: HttpClient) {}
@@ -31,7 +33,9 @@ export class StateRepositoryFile implements StateRepository {
                     return response.json();
                 })
                 .then(data => {
-                    resolve(PakDirectory.fromJSON(data));
+                    let pakDirectory = PakDirectory.fromJSON(data);
+                    pakDirectory.stateRepository = that;
+                    resolve(pakDirectory);
                 })
                 .catch(reason => {
                     reject(new Error(`fetch pak-directory failed: reason: \r\n\r\n${reason}`));
@@ -46,7 +50,9 @@ export class StateRepositoryFile implements StateRepository {
                     return response.json();
                 })
                 .then(data => {
-                    resolve(StateSession.fromJSON(data));
+                    let stateSession = StateSession.fromJSON(data);
+                    stateSession.stateRepository = that;
+                    resolve(stateSession);
                 })
                 .catch(reason => {
                     reject(new Error(`fetch session list: reason: \r\n\r\n${reason}`));

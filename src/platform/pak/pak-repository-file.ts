@@ -1,11 +1,13 @@
 import { HttpClient } from 'aurelia-fetch-client';
 import { PakRepository, PakRepositoryType } from './pak-repository';
 import { Pak } from './pak';
+import { PakDirectory } from './pak-directory';
 
 export class PakRepositoryFile implements PakRepository {
     public locked = false;
     public uniqueId = 'state-provider';
     public pakRepositoryType: PakRepositoryType = 'File';
+    public pakDirectory: PakDirectory;
     public path: string;
 
     constructor(private httpClient: HttpClient) {}
@@ -18,7 +20,9 @@ export class PakRepositoryFile implements PakRepository {
                     return response.json();
                 })
                 .then(data => {
-                    resolve(Pak.fromJSON(data));
+                    let pak = Pak.fromJSON(data);
+                    pak.pakRepository = that;
+                    resolve(pak);
                 })
                 .catch(reason => {
                     reject(new Error(`fetch session list: reason: \r\n\r\n${reason}`));

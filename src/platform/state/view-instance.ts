@@ -1,3 +1,5 @@
+import { ActivePak } from './active-pak';
+
 export class ViewInstance {
     public static fromJSON(json: ViewInstanceJSON): ViewInstance {
         let viewInstance = new ViewInstance();
@@ -6,6 +8,7 @@ export class ViewInstance {
     }
 
     public viewState: string;
+    public activePak: ActivePak;
 }
 
 export interface ViewInstanceJSON {

@@ -1,4 +1,5 @@
 import { ActivePak, ActivePakJSON } from './active-pak';
+import { StateRepository } from './state-repository';
 
 export class StateSession {
 
@@ -7,8 +8,10 @@ export class StateSession {
         // assign properties...
         stateSession.locked = json.locked;
         stateSession.uniqueId = json.uniqueId;
-        stateSession.activePaks = json.activePaks.map(activePak => {
-            return ActivePak.fromJSON(activePak);
+        stateSession.activePaks = json.activePaks.map(activePakJson => {
+            let activePak = ActivePak.fromJSON(activePakJson);
+            activePak.stateSession = stateSession;
+            return activePak;
         });
         return stateSession;
     }
@@ -16,6 +19,7 @@ export class StateSession {
     public locked: boolean;
     public uniqueId: string;
     public activePaks: ActivePak[] = [];
+    public stateRepository: StateRepository;
 }
 
 export interface StateSessionJSON {
