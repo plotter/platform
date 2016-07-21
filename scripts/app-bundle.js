@@ -159,8 +159,11 @@ define('platform/state/active-pak',["require", "exports", './view-instance'], fu
             return activePak;
         };
         ActivePak.prototype.getPak = function () {
+            if (this.pakPromise) {
+                return this.pakPromise;
+            }
             var that = this;
-            return that.stateSession.stateRepository.getPakDirectory()
+            return this.pakPromise = that.stateSession.stateRepository.getPakDirectory()
                 .then(function (pakDirectory) {
                 var pakHosts = pakDirectory.pakRepositories.filter(function (pr) { return pr.uniqueId === that.pakHostId; });
                 if (pakHosts.length >= 1) {
@@ -767,7 +770,7 @@ define('state/new-session',["require", "exports", 'aurelia-framework', '../platf
                 .then(function (pakDirectory) {
                 that.pakDirectory = pakDirectory;
                 that.pakDirectory.pakRepositories.forEach(function (pakRepo) {
-                    pakRepo.getPakList().then(function (pakList) { });
+                    pakRepo.getPakList();
                 });
             });
         };

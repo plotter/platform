@@ -15,7 +15,8 @@ export class ActivePak {
             return viewInstance;
         });
 
-        // let this run on the next 'tick' since it uses activePak's stateSession property which isn't set until the return of this function
+        // let this run on the next 'tick' since it uses activePak's stateSession property 
+        //    which isn't set until the return of this function
         setTimeout(() => activePak.getPak(), 0);
 
         return activePak;
@@ -29,9 +30,16 @@ export class ActivePak {
     public viewInstances: ViewInstance[];
     public stateSession: StateSession;
 
+    private pakPromise: Promise<Pak>;
+
     public getPak(): Promise<Pak> {
+
+        if (this.pakPromise) {
+            return this.pakPromise;
+        }
+
         let that = this;
-        return that.stateSession.stateRepository.getPakDirectory()
+        return this.pakPromise = that.stateSession.stateRepository.getPakDirectory()
             .then(pakDirectory => {
                 let pakHosts = pakDirectory.pakRepositories.filter(pr => pr.uniqueId === that.pakHostId);
                 if (pakHosts.length >= 1) {

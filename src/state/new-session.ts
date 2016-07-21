@@ -19,7 +19,7 @@ export class NewSession {
             .then(pakDirectory => {
                 that.pakDirectory = pakDirectory;
                 that.pakDirectory.pakRepositories.forEach(pakRepo => {
-                    pakRepo.getPakList().then(pakList => {});
+                    pakRepo.getPakList();
                 });
             });
     }
