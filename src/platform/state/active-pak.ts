@@ -14,7 +14,9 @@ export class ActivePak {
             viewInstance.activePak = activePak;
             return viewInstance;
         });
-        setTimeout(() => activePak.getPak(), 3000);
+
+        // let this run on the next 'tick' since it uses activePak's stateSession property which isn't set until the return of this function
+        setTimeout(() => activePak.getPak(), 0);
 
         return activePak;
     }

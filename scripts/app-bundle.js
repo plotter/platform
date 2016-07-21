@@ -155,7 +155,7 @@ define('platform/state/active-pak',["require", "exports", './view-instance'], fu
                 viewInstance.activePak = activePak;
                 return viewInstance;
             });
-            setTimeout(function () { return activePak.getPak(); }, 3000);
+            setTimeout(function () { return activePak.getPak(); }, 0);
             return activePak;
         };
         ActivePak.prototype.getPak = function () {
