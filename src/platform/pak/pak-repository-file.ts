@@ -11,11 +11,19 @@ export class PakRepositoryFile implements PakRepository {
     public path: string;
     public pakList: string[];
 
+    private pakMap = new Map<string, Pak>();
+    private pakPromiseMap = new Map<string, Promise<Pak>>();
+
     constructor(private httpClient: HttpClient) {}
 
     public getPak = (pakId): Promise<Pak> => {
+
+        if (this.pakPromiseMap.has(pakId)) {
+            return this.pakPromiseMap.get(pakId);
+        }
+
         let that = this;
-        return new Promise<Pak>((resolve, reject) => {
+        let pakPromise = new Promise<Pak>((resolve, reject) => {
             that.httpClient.fetch(`${that.path}/${that.uniqueId}/${pakId}.json`)
                 .then(response => {
                     return response.json();
@@ -23,12 +31,16 @@ export class PakRepositoryFile implements PakRepository {
                 .then(data => {
                     let pak = Pak.fromJSON(data);
                     pak.pakRepository = that;
+                    that.pakMap.set(pakId, pak);
                     resolve(pak);
                 })
                 .catch(reason => {
                     reject(new Error(`fetch session list: reason: \r\n\r\n${reason}`));
                 });
         });
+
+        this.pakPromiseMap.set(pakId, pakPromise);
+        return pakPromise;
     }
     public getPakList = (): Promise<string[]> => {
         let that = this;

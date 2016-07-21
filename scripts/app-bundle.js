@@ -50,9 +50,14 @@ define('platform/pak/pak-repository-file',["require", "exports", './pak'], funct
             this.locked = false;
             this.uniqueId = 'state-provider';
             this.pakRepositoryType = 'File';
+            this.pakMap = new Map();
+            this.pakPromiseMap = new Map();
             this.getPak = function (pakId) {
+                if (_this.pakPromiseMap.has(pakId)) {
+                    return _this.pakPromiseMap.get(pakId);
+                }
                 var that = _this;
-                return new Promise(function (resolve, reject) {
+                var pakPromise = new Promise(function (resolve, reject) {
                     that.httpClient.fetch(that.path + "/" + that.uniqueId + "/" + pakId + ".json")
                         .then(function (response) {
                         return response.json();
@@ -60,12 +65,15 @@ define('platform/pak/pak-repository-file',["require", "exports", './pak'], funct
                         .then(function (data) {
                         var pak = pak_1.Pak.fromJSON(data);
                         pak.pakRepository = that;
+                        that.pakMap.set(pakId, pak);
                         resolve(pak);
                     })
                         .catch(function (reason) {
                         reject(new Error("fetch session list: reason: \r\n\r\n" + reason));
                     });
                 });
+                _this.pakPromiseMap.set(pakId, pakPromise);
+                return pakPromise;
             };
             this.getPakList = function () {
                 var that = _this;
@@ -209,10 +217,6 @@ define('platform/state/state-session',["require", "exports", './active-pak'], fu
 define('platform/state/state-repository',["require", "exports"], function (require, exports) {
     "use strict";
 });
-
-
-
-define("platform/state/state-repository-local-storage", [],function(){});
 
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -601,6 +605,42 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+define('state/new-session',["require", "exports", 'aurelia-framework', '../platform/state/state-directory'], function (require, exports, aurelia_framework_1, state_directory_1) {
+    "use strict";
+    var NewSession = (function () {
+        function NewSession(stateDirectory) {
+            this.stateDirectory = stateDirectory;
+        }
+        NewSession.prototype.activate = function (params) {
+            var that = this;
+            this.hostId = params.hostId;
+            this.stateRepository = this.stateDirectory.getStateRepository(this.hostId);
+            this.stateRepository.getPakDirectory()
+                .then(function (pakDirectory) {
+                that.pakDirectory = pakDirectory;
+                that.pakDirectory.pakRepositories.forEach(function (pakRepo) {
+                    pakRepo.getPakList();
+                });
+            });
+        };
+        NewSession = __decorate([
+            aurelia_framework_1.inject(state_directory_1.StateDirectory), 
+            __metadata('design:paramtypes', [state_directory_1.StateDirectory])
+        ], NewSession);
+        return NewSession;
+    }());
+    exports.NewSession = NewSession;
+});
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
 define('state/state-repository-chooser',["require", "exports", 'aurelia-framework', 'aurelia-router', '../platform/state/state-directory', '../platform/plotter'], function (require, exports, aurelia_framework_1, aurelia_router_1, state_directory_1, plotter_1) {
     "use strict";
     var StateRepositoryChooser = (function () {
@@ -693,6 +733,10 @@ define('platform/state/state-repository-github-gist',["require", "exports"], fun
     exports.StateRepositoryGitHubGist = StateRepositoryGitHubGist;
 });
 
+
+
+define("platform/state/state-repository-local-storage", [],function(){});
+
 define('platform/state/state-repository-service',["require", "exports"], function (require, exports) {
     "use strict";
     var StateRepositoryService = (function () {
@@ -758,51 +802,15 @@ define('../test/unit/platform/platform-startup.spec',["require", "exports", 'aur
     });
 });
 
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
-define('state/new-session',["require", "exports", 'aurelia-framework', '../platform/state/state-directory'], function (require, exports, aurelia_framework_1, state_directory_1) {
-    "use strict";
-    var NewSession = (function () {
-        function NewSession(stateDirectory) {
-            this.stateDirectory = stateDirectory;
-        }
-        NewSession.prototype.activate = function (params) {
-            var that = this;
-            this.hostId = params.hostId;
-            this.stateRepository = this.stateDirectory.getStateRepository(this.hostId);
-            this.stateRepository.getPakDirectory()
-                .then(function (pakDirectory) {
-                that.pakDirectory = pakDirectory;
-                that.pakDirectory.pakRepositories.forEach(function (pakRepo) {
-                    pakRepo.getPakList();
-                });
-            });
-        };
-        NewSession = __decorate([
-            aurelia_framework_1.inject(state_directory_1.StateDirectory), 
-            __metadata('design:paramtypes', [state_directory_1.StateDirectory])
-        ], NewSession);
-        return NewSession;
-    }());
-    exports.NewSession = NewSession;
-});
-
 define('text!app.html', ['module'], function(module) { module.exports = "<template>\n  <require from=\"app.css\"></require>\n  <router-view></router-view>\n</template>\n"; });
-define('text!shell/shell.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./shell.css\"></require>\r\n    <div class=\"header\">\r\n        <h1>Shell (${hostId} / ${sessionId}) </h1>\r\n    </div>\r\n    <div class=\"body\">\r\n        <h1>Active Paks</h1>\r\n        <div repeat.for=\"activePak of session.activePaks\">\r\n            <h3>${activePak.uniqueId}: [${activePak.pakHostId} / ${activePak.pakId}]</h3>\r\n            <ul if.bind=\"activePak.pak\">\r\n                <li repeat.for=\"view of activePak.pak.views\">${view.uniqueId}</li>\r\n            </ul>\r\n            <p if.bind=\"!activePak.pak\">loading...</p>\r\n    </div>\r\n</template>\r\n"; });
 define('text!app.css', ['module'], function(module) { module.exports = "router-view {\n  flex: 1 0;\n  display: flex;\n  flex-direction: column;\n}\n"; });
-define('text!state/state-repository-chooser.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./state-repository-chooser.css\"></require>\r\n    <div class=\"header\">\r\n        <h1>Plotter Host</h1>\r\n        <h3>Choose Plotter Host:</h3>\r\n        <div class=\"input-group input-group-lg\">\r\n            <select class=\"form-control\" value.bind=\"state\">\r\n                <option model.bind=\"ss\" repeat.for=\"ss of states\">${ss.uniqueId}</option>\r\n            </select>\r\n            <span class=\"input-group-addon\" click.trigger=\"choose()\">\r\n                <i class=\"fa fa-arrow-circle-right fa-lg\"></i>\r\n            </span>\r\n        </div>\r\n    </div>\r\n    <div class=\"body\"></div>\r\n</template>"; });
 define('text!shell/shell.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  flex: 1 1;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
-define('text!state/state-session-chooser.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./state-repository-chooser.css\"></require>\r\n    <div class=\"header\">\r\n        <h1>Session Chooser (${stateRepoUniqueId}) </h1>\r\n        <p>${message} </p>\r\n        <h3>Choose Session:</h3>\r\n        <div class=\"input-group input-group-lg\">\r\n            <select class=\"form-control\" value.bind=\"sessionId\">\r\n                <option value.bind=\"''\">(New Session)</option>\r\n                <option value.bind=\"s\" repeat.for=\"s of sessionList\">${s}</option>\r\n            </select>\r\n            <span class=\"input-group-addon\" click.trigger=\"choose()\">\r\n                <i class=\"fa fa-arrow-circle-right fa-lg\"></i>\r\n            </span>\r\n        </div>\r\n\r\n    </div>\r\n    <div class=\"body\"></div>\r\n</template>\r\n"; });
+define('text!shell/shell.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./shell.css\"></require>\r\n    <div class=\"header\">\r\n        <h1>Shell (${hostId} / ${sessionId}) </h1>\r\n    </div>\r\n    <div class=\"body\">\r\n        <h1>Active Paks</h1>\r\n        <div repeat.for=\"activePak of session.activePaks\">\r\n            <h3>${activePak.uniqueId}: [${activePak.pakHostId} / ${activePak.pakId}]</h3>\r\n            <ul if.bind=\"activePak.pak\">\r\n                <li repeat.for=\"view of activePak.pak.views\">${view.uniqueId}</li>\r\n            </ul>\r\n            <p if.bind=\"!activePak.pak\">loading...</p>\r\n    </div>\r\n</template>\r\n"; });
 define('text!shell/state-repository-chooser.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  flex: 1 1;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
-define('text!state/state-repository-chooser.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  flex: 1 1;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
-define('text!state/state-session-chooser.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  flex: 1 1;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
 define('text!state/new-session.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./new-session.css\"></require>\r\n    <div class=\"header\">\r\n        <h1>New Session on ${hostId}</h1>\r\n    </div>\r\n    <div class=\"body\">\r\n        <div repeat.for=\"pakRepo of pakDirectory.pakRepositories\">\r\n            <h3>${pakRepo.uniqueId}</h3>\r\n            <p repeat.for=\"pakId of pakRepo.pakList\">&nbsp;&nbsp;&nbsp;&nbsp;<label><input type=\"checkbox\" value.bind=\"pakId\"> ${pakId}</label></p>\r\n        </div>\r\n    </div>\r\n</template>"; });
 define('text!state/new-session.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  flex: 1 1;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
+define('text!state/state-repository-chooser.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./state-repository-chooser.css\"></require>\r\n    <div class=\"header\">\r\n        <h1>Plotter Host</h1>\r\n        <h3>Choose Plotter Host:</h3>\r\n        <div class=\"input-group input-group-lg\">\r\n            <select class=\"form-control\" value.bind=\"state\">\r\n                <option model.bind=\"ss\" repeat.for=\"ss of states\">${ss.uniqueId}</option>\r\n            </select>\r\n            <span class=\"input-group-addon\" click.trigger=\"choose()\">\r\n                <i class=\"fa fa-arrow-circle-right fa-lg\"></i>\r\n            </span>\r\n        </div>\r\n    </div>\r\n    <div class=\"body\"></div>\r\n</template>"; });
+define('text!state/state-repository-chooser.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  flex: 1 1;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
+define('text!state/state-session-chooser.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  flex: 1 1;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
+define('text!state/state-session-chooser.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./state-repository-chooser.css\"></require>\r\n    <div class=\"header\">\r\n        <h1>Session Chooser (${stateRepoUniqueId}) </h1>\r\n        <p>${message} </p>\r\n        <h3>Choose Session:</h3>\r\n        <div class=\"input-group input-group-lg\">\r\n            <select class=\"form-control\" value.bind=\"sessionId\">\r\n                <option value.bind=\"''\">(New Session)</option>\r\n                <option value.bind=\"s\" repeat.for=\"s of sessionList\">${s}</option>\r\n            </select>\r\n            <span class=\"input-group-addon\" click.trigger=\"choose()\">\r\n                <i class=\"fa fa-arrow-circle-right fa-lg\"></i>\r\n            </span>\r\n        </div>\r\n\r\n    </div>\r\n    <div class=\"body\"></div>\r\n</template>\r\n"; });
 //# sourceMappingURL=app-bundle.js.map
