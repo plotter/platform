@@ -32,6 +32,13 @@ define('platform/pak/pak',["require", "exports", './view'], function (require, e
             });
             return pak;
         };
+        Pak.prototype.getView = function (viewId) {
+            var views = this.views.filter(function (view) { return view.uniqueId === viewId; });
+            if (views.length > 0) {
+                return views[0];
+            }
+            return null;
+        };
         return Pak;
     }());
     exports.Pak = Pak;
@@ -139,8 +146,30 @@ define('platform/state/view-instance',["require", "exports"], function (require,
         }
         ViewInstance.fromJSON = function (json) {
             var viewInstance = new ViewInstance();
+            viewInstance.viewId = json.viewId;
             viewInstance.viewState = json.viewState;
             return viewInstance;
+        };
+        ViewInstance.prototype.getView = function () {
+            if (this.viewPromise) {
+                return this.viewPromise;
+            }
+            var that = this;
+            return this.viewPromise = that.activePak.stateSession.stateRepository.getPakDirectory()
+                .then(function (pakDirectory) {
+                var pakHosts = pakDirectory.pakRepositories.filter(function (pr) { return pr.uniqueId === that.activePak.pakHostId; });
+                if (pakHosts.length >= 1) {
+                    var pakHost = pakHosts[0];
+                    return pakHost.getPak(that.activePak.pakId)
+                        .then(function (pak) {
+                        var view = pak.getView(that.viewId);
+                        return view;
+                    });
+                }
+                else {
+                    throw (new Error("Failed to get pak - couldn't find pakHost(" + that.activePak.pakHostId + ")"));
+                }
+            });
         };
         return ViewInstance;
     }());

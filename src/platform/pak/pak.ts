@@ -19,6 +19,15 @@ export class Pak {
     public uniqueId: string;
     public pakRepository: PakRepository;
     public views: View[];
+
+    public getView(viewId: string): View {
+        let views = this.views.filter(view => view.uniqueId === viewId);
+        if (views.length > 0) {
+            return views[0];
+        }
+
+        return null;
+    }
 }
 
 export interface PakJSON {
