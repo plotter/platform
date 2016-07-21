@@ -31,6 +31,8 @@ export class StateSessionChooser {
     }
 
     public choose() {
+        let that = this;
+
         if (!this.sessionId) {
             // route to new-session
             this.router.navigateToRoute('newSession', { hostId: this.stateRepoUniqueId });
@@ -40,8 +42,8 @@ export class StateSessionChooser {
         // route to shell
         this.stateDirectory.getStateSession(this.stateRepoUniqueId, this.sessionId)
             .then(stateSession => {
-                this.plotter.stateSession = stateSession;
-                this.router.navigateToRoute('shell', { hostId: this.stateRepoUniqueId, sessionId: this.sessionId });
+                that.plotter.stateSession = stateSession;
+                that.router.navigateToRoute('shell', { hostId: that.stateRepoUniqueId, sessionId: that.sessionId });
             });
     }
 }

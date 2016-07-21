@@ -23,11 +23,20 @@ export class StateRepositoryFile implements StateRepository {
     public stateDirectory: StateDirectory;
     public path: string;
 
+    private pakDirectoryPromise: Promise<PakDirectory>;
+    private stateSessionPromiseMap = new Map<string, Promise<StateSession>>();
+    private stateSessionMap = new Map<string, StateSession>();
+
     constructor(private httpClient: HttpClient) {}
 
     public getPakDirectory = () => {
+
+        if (this.pakDirectoryPromise) {
+            return this.pakDirectoryPromise;
+        }
+
         let that = this;
-        return new Promise<PakDirectory>((resolve, reject) => {
+        return this.pakDirectoryPromise = new Promise<PakDirectory>((resolve, reject) => {
             that.httpClient.fetch(`${that.path}/${that.uniqueId}/pak-directory.json`)
                 .then(response => {
                     return response.json();
@@ -42,9 +51,15 @@ export class StateRepositoryFile implements StateRepository {
                 });
         });
     }
-    public getStateSession(sessionId) {
+
+    public getStateSession(sessionId: string): Promise<StateSession> {
+
+        if (this.stateSessionPromiseMap.has(sessionId)) {
+            return this.stateSessionPromiseMap.get(sessionId);
+        }
+
         let that = this;
-        return new Promise<StateSession>((resolve, reject) => {
+        let stateSessionPromise = new Promise<StateSession>((resolve, reject) => {
             that.httpClient.fetch(`${that.path}/${that.uniqueId}/${sessionId}.json`)
                 .then(response => {
                     return response.json();
@@ -52,12 +67,16 @@ export class StateRepositoryFile implements StateRepository {
                 .then(data => {
                     let stateSession = StateSession.fromJSON(data);
                     stateSession.stateRepository = that;
+                    that.stateSessionMap.set(sessionId, stateSession);
                     resolve(stateSession);
                 })
                 .catch(reason => {
                     reject(new Error(`fetch session list: reason: \r\n\r\n${reason}`));
                 });
         });
+
+        this.stateSessionPromiseMap.set(sessionId, stateSessionPromise);
+        return stateSessionPromise;
     }
     public getSessionList() {
         let that = this;

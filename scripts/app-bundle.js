@@ -232,9 +232,14 @@ define('platform/state/state-repository-file',["require", "exports", 'aurelia-fr
             this.locked = false;
             this.uniqueId = 'state-repository';
             this.stateRepositoryType = 'File';
+            this.stateSessionPromiseMap = new Map();
+            this.stateSessionMap = new Map();
             this.getPakDirectory = function () {
+                if (_this.pakDirectoryPromise) {
+                    return _this.pakDirectoryPromise;
+                }
                 var that = _this;
-                return new Promise(function (resolve, reject) {
+                return _this.pakDirectoryPromise = new Promise(function (resolve, reject) {
                     that.httpClient.fetch(that.path + "/" + that.uniqueId + "/pak-directory.json")
                         .then(function (response) {
                         return response.json();
@@ -259,8 +264,11 @@ define('platform/state/state-repository-file',["require", "exports", 'aurelia-fr
             return stateRepository;
         };
         StateRepositoryFile.prototype.getStateSession = function (sessionId) {
+            if (this.stateSessionPromiseMap.has(sessionId)) {
+                return this.stateSessionPromiseMap.get(sessionId);
+            }
             var that = this;
-            return new Promise(function (resolve, reject) {
+            var stateSessionPromise = new Promise(function (resolve, reject) {
                 that.httpClient.fetch(that.path + "/" + that.uniqueId + "/" + sessionId + ".json")
                     .then(function (response) {
                     return response.json();
@@ -268,12 +276,15 @@ define('platform/state/state-repository-file',["require", "exports", 'aurelia-fr
                     .then(function (data) {
                     var stateSession = state_session_1.StateSession.fromJSON(data);
                     stateSession.stateRepository = that;
+                    that.stateSessionMap.set(sessionId, stateSession);
                     resolve(stateSession);
                 })
                     .catch(function (reason) {
                     reject(new Error("fetch session list: reason: \r\n\r\n" + reason));
                 });
             });
+            this.stateSessionPromiseMap.set(sessionId, stateSessionPromise);
+            return stateSessionPromise;
         };
         StateRepositoryFile.prototype.getSessionList = function () {
             var that = this;
@@ -648,15 +659,15 @@ define('state/state-session-chooser',["require", "exports", 'aurelia-framework',
             }
         };
         StateSessionChooser.prototype.choose = function () {
-            var _this = this;
+            var that = this;
             if (!this.sessionId) {
                 this.router.navigateToRoute('newSession', { hostId: this.stateRepoUniqueId });
                 return;
             }
             this.stateDirectory.getStateSession(this.stateRepoUniqueId, this.sessionId)
                 .then(function (stateSession) {
-                _this.plotter.stateSession = stateSession;
-                _this.router.navigateToRoute('shell', { hostId: _this.stateRepoUniqueId, sessionId: _this.sessionId });
+                that.plotter.stateSession = stateSession;
+                that.router.navigateToRoute('shell', { hostId: that.stateRepoUniqueId, sessionId: that.sessionId });
             });
         };
         StateSessionChooser = __decorate([
