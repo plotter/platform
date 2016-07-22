@@ -1,32 +1,34 @@
 <template>
     <require from="./shell.css"></require>
+
     <div class="header">
         <h1>Shell (${hostId} / ${sessionId}) </h1>
     </div>
+
     <div class="body">
-        <h1>Active Paks</h1>
-        <div repeat.for="activePak of session.activePaks">
-            <h3>${activePak.uniqueId}: [${activePak.pakHostId} / ${activePak.pakId}]</h3>
-            <ul if.bind="activePak.pak">
-                <li repeat.for="vi of activePak.viewInstances">(${vi.paneType}) ${vi.uniqueId}: ${vi.viewId}</li>
+        <div class="nav">
+            <h3>Nav</h3>
+            <ul if.bind="navViewInstances.length">
+                <li repeat.for="vi of navViewInstances">(${vi.paneType}) ${vi.uniqueId}: ${vi.viewId}</li>
             </ul>
-            <p if.bind="!activePak.pak">loading...</p>
         </div>
 
-        <h1>Panes</h1>
-        <h3>Nav</h3>
-        <ul if.bind="navViewInstances.length">
-            <li repeat.for="vi of navViewInstances">(${vi.paneType}) ${vi.uniqueId}: ${vi.viewId}</li>
-        </ul>
+        <div class="nav-body">
 
-        <h3>Main</h3>
-        <ul if.bind="navViewInstances.length">
-            <li repeat.for="vi of mainViewInstances">(${vi.paneType}) ${vi.uniqueId}: ${vi.viewId}</li>
-        </ul>
+            <div class="main">
+                <h3>Main</h3>
+                <ul if.bind="navViewInstances.length">
+                    <li repeat.for="vi of mainViewInstances">(${vi.paneType}) ${vi.uniqueId}: ${vi.viewId}</li>
+                </ul>
+            </div>
 
-        <h3>Alt</h3>
-        <ul if.bind="navViewInstances.length">
-            <li repeat.for="vi of altViewInstances">(${vi.paneType}) ${vi.uniqueId}: ${vi.viewId}</li>
-        </ul>
+            <div class="alt">
+                <h3>Alt</h3>
+                <ul if.bind="navViewInstances.length">
+                    <li repeat.for="vi of altViewInstances">(${vi.paneType}) ${vi.uniqueId}: ${vi.viewId}</li>
+                </ul>
+            </div>
+
+        </div>
     </div>
 </template>
