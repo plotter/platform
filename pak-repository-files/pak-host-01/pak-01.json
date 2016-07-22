@@ -5,17 +5,17 @@
         {
             "uniqueId": "view1",
             "pane": "main",
-            "moduleUrl": "http://plotter.github.io/platform/paks/pak-01/views/view1"
+            "moduleUrl": "../views/one/one"
         },
         {
             "uniqueId": "view2",
             "pane": "main",
-            "moduleUrl": "http://plotter.github.io/platform/paks/pak-01/views/view2"
+            "moduleUrl": "../views/two/two"
         },
         {
             "uniqueId": "view3",
             "pane": "nav",
-            "moduleUrl": "http://plotter.github.io/platform/paks/pak-01/views/view3"
+            "moduleUrl": "../views/three/three"
         }
     ]
 }

@@ -11,6 +11,7 @@
             <ul>
                 <li repeat.for="vi of navViewInstances">(${vi.paneType}) ${vi.uniqueId}: ${vi.viewId}</li>
             </ul>
+            <compose repeat.for="vi of navViewInstances" view-model.bind="vi.viewModel"></compose>
         </div>
 
         <div class="nav-body">
@@ -20,6 +21,7 @@
                 <ul>
                     <li repeat.for="vi of mainViewInstances">(${vi.paneType}) ${vi.uniqueId}: ${vi.viewId}</li>
                 </ul>
+                <compose repeat.for="vi of mainViewInstances" view-model.bind="vi.viewModel"></compose>
             </div>
 
             <div class="alt" if.bind="altViewInstances.length">
@@ -27,6 +29,7 @@
                 <ul>
                     <li repeat.for="vi of altViewInstances">(${vi.paneType}) ${vi.uniqueId}: ${vi.viewId}</li>
                 </ul>
+                <compose repeat.for="vi of altViewInstances" view-model.bind="vi.viewModel"></compose>
             </div>
 
         </div>

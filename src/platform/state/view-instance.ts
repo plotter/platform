@@ -6,6 +6,7 @@ export class ViewInstance {
         let viewInstance = new ViewInstance();
         viewInstance.uniqueId = json.uniqueId;
         viewInstance.viewId = json.viewId;
+        viewInstance.viewModel = json.viewModel;
         viewInstance.viewState = json.viewState;
         viewInstance.paneType = json.paneType;
         return viewInstance;
@@ -14,8 +15,10 @@ export class ViewInstance {
     public uniqueId: string;
     public viewId: string;
     public paneType: PaneType;
+    public viewModel: string;
     public viewState: string;
     public activePak: ActivePak;
+    public view: View;
 
     private viewPromise: Promise<View>;
 
@@ -34,6 +37,7 @@ export class ViewInstance {
                     return pakHost.getPak(that.activePak.pakId)
                         .then(pak => {
                             let view = pak.getView(that.viewId);
+                            that.view = view;
                             return view;
                         });
                 } else {
@@ -47,5 +51,6 @@ export interface ViewInstanceJSON {
     uniqueId: string;
     viewId: string;
     paneType: PaneType;
+    viewModel: string;
     viewState: string;
 }
