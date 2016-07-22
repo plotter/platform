@@ -8,8 +8,25 @@
         <div repeat.for="activePak of session.activePaks">
             <h3>${activePak.uniqueId}: [${activePak.pakHostId} / ${activePak.pakId}]</h3>
             <ul if.bind="activePak.pak">
-                <li repeat.for="view of activePak.pak.views">${view.uniqueId}</li>
+                <li repeat.for="vi of activePak.viewInstances">(${vi.paneType}) ${vi.uniqueId}: ${vi.viewId}</li>
             </ul>
             <p if.bind="!activePak.pak">loading...</p>
+        </div>
+
+        <h1>Panes</h1>
+        <h3>Nav</h3>
+        <ul if.bind="navViewInstances.length">
+            <li repeat.for="vi of navViewInstances">(${vi.paneType}) ${vi.uniqueId}: ${vi.viewId}</li>
+        </ul>
+
+        <h3>Main</h3>
+        <ul if.bind="navViewInstances.length">
+            <li repeat.for="vi of mainViewInstances">(${vi.paneType}) ${vi.uniqueId}: ${vi.viewId}</li>
+        </ul>
+
+        <h3>Alt</h3>
+        <ul if.bind="navViewInstances.length">
+            <li repeat.for="vi of altViewInstances">(${vi.paneType}) ${vi.uniqueId}: ${vi.viewId}</li>
+        </ul>
     </div>
 </template>

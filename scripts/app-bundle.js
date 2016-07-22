@@ -146,8 +146,10 @@ define('platform/state/view-instance',["require", "exports"], function (require,
         }
         ViewInstance.fromJSON = function (json) {
             var viewInstance = new ViewInstance();
+            viewInstance.uniqueId = json.uniqueId;
             viewInstance.viewId = json.viewId;
             viewInstance.viewState = json.viewState;
+            viewInstance.paneType = json.paneType;
             return viewInstance;
         };
         ViewInstance.prototype.getView = function () {
@@ -606,14 +608,34 @@ define('shell/shell',["require", "exports", 'aurelia-framework', '../platform/st
     var Shell = (function () {
         function Shell(stateDirectory) {
             this.stateDirectory = stateDirectory;
+            this.navViewInstances = new Array();
+            this.mainViewInstances = new Array();
+            this.altViewInstances = new Array();
         }
         Shell.prototype.activate = function (params) {
-            var _this = this;
+            var that = this;
             this.hostId = params.hostId;
             this.sessionId = params.sessionId;
             this.stateDirectory.getStateSession(this.hostId, this.sessionId)
                 .then(function (session) {
-                _this.session = session;
+                that.session = session;
+                that.session.activePaks.forEach(function (activePak) {
+                    activePak.viewInstances.forEach(function (viewInstance) {
+                        switch (viewInstance.paneType) {
+                            case 'nav':
+                                that.navViewInstances.push(viewInstance);
+                                break;
+                            case 'main':
+                                that.mainViewInstances.push(viewInstance);
+                                break;
+                            case 'alt':
+                                that.altViewInstances.push(viewInstance);
+                                break;
+                            default:
+                                break;
+                        }
+                    });
+                });
             });
         };
         Shell = __decorate([
@@ -834,7 +856,7 @@ define('../test/unit/platform/platform-startup.spec',["require", "exports", 'aur
 define('text!app.html', ['module'], function(module) { module.exports = "<template>\n  <require from=\"app.css\"></require>\n  <router-view></router-view>\n</template>\n"; });
 define('text!app.css', ['module'], function(module) { module.exports = "router-view {\n  flex: 1 0;\n  display: flex;\n  flex-direction: column;\n}\n"; });
 define('text!shell/shell.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  flex: 1 1;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
-define('text!shell/shell.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./shell.css\"></require>\r\n    <div class=\"header\">\r\n        <h1>Shell (${hostId} / ${sessionId}) </h1>\r\n    </div>\r\n    <div class=\"body\">\r\n        <h1>Active Paks</h1>\r\n        <div repeat.for=\"activePak of session.activePaks\">\r\n            <h3>${activePak.uniqueId}: [${activePak.pakHostId} / ${activePak.pakId}]</h3>\r\n            <ul if.bind=\"activePak.pak\">\r\n                <li repeat.for=\"view of activePak.pak.views\">${view.uniqueId}</li>\r\n            </ul>\r\n            <p if.bind=\"!activePak.pak\">loading...</p>\r\n    </div>\r\n</template>\r\n"; });
+define('text!shell/shell.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./shell.css\"></require>\r\n    <div class=\"header\">\r\n        <h1>Shell (${hostId} / ${sessionId}) </h1>\r\n    </div>\r\n    <div class=\"body\">\r\n        <h1>Active Paks</h1>\r\n        <div repeat.for=\"activePak of session.activePaks\">\r\n            <h3>${activePak.uniqueId}: [${activePak.pakHostId} / ${activePak.pakId}]</h3>\r\n            <ul if.bind=\"activePak.pak\">\r\n                <li repeat.for=\"vi of activePak.viewInstances\">(${vi.paneType}) ${vi.uniqueId}: ${vi.viewId}</li>\r\n            </ul>\r\n            <p if.bind=\"!activePak.pak\">loading...</p>\r\n        </div>\r\n\r\n        <h1>Panes</h1>\r\n        <h3>Nav</h3>\r\n        <ul if.bind=\"navViewInstances.length\">\r\n            <li repeat.for=\"vi of navViewInstances\">(${vi.paneType}) ${vi.uniqueId}: ${vi.viewId}</li>\r\n        </ul>\r\n\r\n        <h3>Main</h3>\r\n        <ul if.bind=\"navViewInstances.length\">\r\n            <li repeat.for=\"vi of mainViewInstances\">(${vi.paneType}) ${vi.uniqueId}: ${vi.viewId}</li>\r\n        </ul>\r\n\r\n        <h3>Alt</h3>\r\n        <ul if.bind=\"navViewInstances.length\">\r\n            <li repeat.for=\"vi of altViewInstances\">(${vi.paneType}) ${vi.uniqueId}: ${vi.viewId}</li>\r\n        </ul>\r\n    </div>\r\n</template>"; });
 define('text!shell/state-repository-chooser.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  flex: 1 1;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
 define('text!state/new-session.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./new-session.css\"></require>\r\n    <div class=\"header\">\r\n        <h1>New Session on ${hostId}</h1>\r\n    </div>\r\n    <div class=\"body\">\r\n        <div repeat.for=\"pakRepo of pakDirectory.pakRepositories\">\r\n            <h3>${pakRepo.uniqueId}</h3>\r\n            <p repeat.for=\"pakId of pakRepo.pakList\">&nbsp;&nbsp;&nbsp;&nbsp;<label><input type=\"checkbox\" value.bind=\"pakId\"> ${pakId}</label></p>\r\n        </div>\r\n    </div>\r\n</template>"; });
 define('text!state/new-session.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  flex: 1 1;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });

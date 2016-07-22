@@ -1,15 +1,19 @@
 import { ActivePak } from './active-pak';
-import { View } from '../pak/view';
+import { View, PaneType } from '../pak/view';
 
 export class ViewInstance {
     public static fromJSON(json: ViewInstanceJSON): ViewInstance {
         let viewInstance = new ViewInstance();
+        viewInstance.uniqueId = json.uniqueId;
         viewInstance.viewId = json.viewId;
         viewInstance.viewState = json.viewState;
+        viewInstance.paneType = json.paneType;
         return viewInstance;
     }
 
+    public uniqueId: string;
     public viewId: string;
+    public paneType: PaneType;
     public viewState: string;
     public activePak: ActivePak;
 
@@ -40,6 +44,8 @@ export class ViewInstance {
 }
 
 export interface ViewInstanceJSON {
+    uniqueId: string;
     viewId: string;
+    paneType: PaneType;
     viewState: string;
 }
