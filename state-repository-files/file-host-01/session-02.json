@@ -1,0 +1,15 @@
+{
+    "locked": true,
+    "uniqueId": "session-02",
+    "activePaks": [
+        {
+            "locked": true,
+            "uniqueId": "a-pak1",
+            "pakHostId": "pak-host-01",
+            "pakId": "pak-01",
+            "viewInstances": [
+                { "uniqueId": "vi-02", "viewId": "view2", "paneType": "main", "viewState": "{ a: 'hello, world (two)' }"}
+            ]
+        }
+    ]
+}

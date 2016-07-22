@@ -6,25 +6,25 @@
     </div>
 
     <div class="body">
-        <div class="nav">
+        <div class="nav" if.bind="navViewInstances.length">
             <h3>Nav</h3>
-            <ul if.bind="navViewInstances.length">
+            <ul>
                 <li repeat.for="vi of navViewInstances">(${vi.paneType}) ${vi.uniqueId}: ${vi.viewId}</li>
             </ul>
         </div>
 
         <div class="nav-body">
 
-            <div class="main">
+            <div class="main" if.bind="mainViewInstances.length">
                 <h3>Main</h3>
-                <ul if.bind="navViewInstances.length">
+                <ul>
                     <li repeat.for="vi of mainViewInstances">(${vi.paneType}) ${vi.uniqueId}: ${vi.viewId}</li>
                 </ul>
             </div>
 
-            <div class="alt">
+            <div class="alt" if.bind="altViewInstances.length">
                 <h3>Alt</h3>
-                <ul if.bind="navViewInstances.length">
+                <ul>
                     <li repeat.for="vi of altViewInstances">(${vi.paneType}) ${vi.uniqueId}: ${vi.viewId}</li>
                 </ul>
             </div>
