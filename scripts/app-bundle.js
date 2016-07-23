@@ -148,6 +148,7 @@ define('platform/state/view-instance',["require", "exports"], function (require,
             var viewInstance = new ViewInstance();
             viewInstance.uniqueId = json.uniqueId;
             viewInstance.viewId = json.viewId;
+            viewInstance.viewTemplate = json.viewTemplate;
             viewInstance.viewModel = json.viewModel;
             viewInstance.viewState = json.viewState;
             viewInstance.paneType = json.paneType;
@@ -800,6 +801,36 @@ define('platform/state/state-repository-service',["require", "exports"], functio
     exports.StateRepositoryService = StateRepositoryService;
 });
 
+define('views/one/one',["require", "exports"], function (require, exports) {
+    "use strict";
+    var One = (function () {
+        function One() {
+        }
+        return One;
+    }());
+    exports.One = One;
+});
+
+define('views/two/two',["require", "exports"], function (require, exports) {
+    "use strict";
+    var Two = (function () {
+        function Two() {
+        }
+        return Two;
+    }());
+    exports.Two = Two;
+});
+
+define('views/three/three',["require", "exports"], function (require, exports) {
+    "use strict";
+    var Three = (function () {
+        function Three() {
+        }
+        return Three;
+    }());
+    exports.Three = Three;
+});
+
 define('../test/unit/app.spec',["require", "exports", '../../src/app', '../../src/platform/platform-startup', '../../src/platform/plotter', 'aurelia-framework', 'aurelia-fetch-client'], function (require, exports, app_1, platform_startup_1, plotter_1, aurelia_framework_1, aurelia_fetch_client_1) {
     "use strict";
     describe('the app', function () {
@@ -855,48 +886,18 @@ define('../test/unit/platform/platform-startup.spec',["require", "exports", 'aur
     });
 });
 
-define('views/one/one',["require", "exports"], function (require, exports) {
-    "use strict";
-    var One = (function () {
-        function One() {
-        }
-        return One;
-    }());
-    exports.One = One;
-});
-
-define('views/two/two',["require", "exports"], function (require, exports) {
-    "use strict";
-    var Two = (function () {
-        function Two() {
-        }
-        return Two;
-    }());
-    exports.Two = Two;
-});
-
-define('views/three/three',["require", "exports"], function (require, exports) {
-    "use strict";
-    var Three = (function () {
-        function Three() {
-        }
-        return Three;
-    }());
-    exports.Three = Three;
-});
-
 define('text!app.html', ['module'], function(module) { module.exports = "<template>\n  <require from=\"app.css\"></require>\n  <router-view></router-view>\n</template>\n"; });
 define('text!app.css', ['module'], function(module) { module.exports = "router-view {\n  flex: 1 0;\n  display: flex;\n  flex-direction: column;\n}\n"; });
-define('text!shell/shell.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  display: flex;\n  flex-direction: row;\n  flex: 1 0;\n}\n.nav {\n  padding: 10px;\n  background-color: lightseagreen;\n}\n.nav-body {\n  display: flex;\n  flex-direction: column;\n  margin: 0;\n  padding: 0;\n  flex: 1 0;\n}\n.main {\n  display: flex;\n  flex-direction: column;\n  flex: 2 0;\n  padding: 10px;\n  background-color: aquamarine;\n}\n.alt {\n  display: flex;\n  flex-direction: column;\n  flex: 1 0;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
 define('text!shell/shell.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./shell.css\"></require>\r\n\r\n    <div class=\"header\">\r\n        <h1>Shell (${hostId} / ${sessionId}) </h1>\r\n    </div>\r\n\r\n    <div class=\"body\">\r\n        <div class=\"nav\" if.bind=\"navViewInstances.length\">\r\n            <h3>Nav</h3>\r\n            <ul>\r\n                <li repeat.for=\"vi of navViewInstances\">(${vi.paneType}) ${vi.uniqueId}: ${vi.viewId}</li>\r\n            </ul>\r\n            <compose repeat.for=\"vi of navViewInstances\" view-model.bind=\"vi.viewModel\"></compose>\r\n        </div>\r\n\r\n        <div class=\"nav-body\">\r\n\r\n            <div class=\"main\" if.bind=\"mainViewInstances.length\">\r\n                <h3>Main</h3>\r\n                <ul>\r\n                    <li repeat.for=\"vi of mainViewInstances\">(${vi.paneType}) ${vi.uniqueId}: ${vi.viewId}</li>\r\n                </ul>\r\n                <compose repeat.for=\"vi of mainViewInstances\" view-model.bind=\"vi.viewModel\"></compose>\r\n            </div>\r\n\r\n            <div class=\"alt\" if.bind=\"altViewInstances.length\">\r\n                <h3>Alt</h3>\r\n                <ul>\r\n                    <li repeat.for=\"vi of altViewInstances\">(${vi.paneType}) ${vi.uniqueId}: ${vi.viewId}</li>\r\n                </ul>\r\n                <compose repeat.for=\"vi of altViewInstances\" view-model.bind=\"vi.viewModel\"></compose>\r\n            </div>\r\n\r\n        </div>\r\n    </div>\r\n</template>"; });
-define('text!shell/state-repository-chooser.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  flex: 1 1;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
+define('text!shell/shell.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  display: flex;\n  flex-direction: row;\n  flex: 1 0;\n}\n.nav {\n  padding: 10px;\n  background-color: lightseagreen;\n}\n.nav-body {\n  display: flex;\n  flex-direction: column;\n  margin: 0;\n  padding: 0;\n  flex: 1 0;\n}\n.main {\n  display: flex;\n  flex-direction: column;\n  flex: 2 0;\n  padding: 10px;\n  background-color: aquamarine;\n}\n.alt {\n  display: flex;\n  flex-direction: column;\n  flex: 1 0;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
 define('text!state/new-session.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./new-session.css\"></require>\r\n    <div class=\"header\">\r\n        <h1>New Session on ${hostId}</h1>\r\n    </div>\r\n    <div class=\"body\">\r\n        <div repeat.for=\"pakRepo of pakDirectory.pakRepositories\">\r\n            <h3>${pakRepo.uniqueId}</h3>\r\n            <p repeat.for=\"pakId of pakRepo.pakList\">&nbsp;&nbsp;&nbsp;&nbsp;<label><input type=\"checkbox\" value.bind=\"pakId\"> ${pakId}</label></p>\r\n        </div>\r\n    </div>\r\n</template>"; });
-define('text!state/new-session.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  flex: 1 1;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
+define('text!shell/state-repository-chooser.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  flex: 1 1;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
 define('text!state/state-repository-chooser.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./state-repository-chooser.css\"></require>\r\n    <div class=\"header\">\r\n        <h1>Plotter Host</h1>\r\n        <h3>Choose Plotter Host:</h3>\r\n        <div class=\"input-group input-group-lg\">\r\n            <select class=\"form-control\" value.bind=\"state\">\r\n                <option model.bind=\"ss\" repeat.for=\"ss of states\">${ss.uniqueId}</option>\r\n            </select>\r\n            <span class=\"input-group-addon\" click.trigger=\"choose()\">\r\n                <i class=\"fa fa-arrow-circle-right fa-lg\"></i>\r\n            </span>\r\n        </div>\r\n    </div>\r\n    <div class=\"body\"></div>\r\n</template>"; });
+define('text!state/new-session.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  flex: 1 1;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
+define('text!state/state-session-chooser.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./state-repository-chooser.css\"></require>\r\n    <div class=\"header\">\r\n        <h1>Session Chooser (${stateRepoUniqueId}) </h1>\r\n        <p>${message} </p>\r\n        <h3>Choose Session:</h3>\r\n        <div class=\"input-group input-group-lg\">\r\n            <select class=\"form-control\" value.bind=\"sessionId\">\r\n                <option value.bind=\"''\">(New Session)</option>\r\n                <option value.bind=\"s\" repeat.for=\"s of sessionList\">${s}</option>\r\n            </select>\r\n            <span class=\"input-group-addon\" click.trigger=\"choose()\">\r\n                <i class=\"fa fa-arrow-circle-right fa-lg\"></i>\r\n            </span>\r\n        </div>\r\n\r\n    </div>\r\n    <div class=\"body\"></div>\r\n</template>\r\n"; });
 define('text!state/state-repository-chooser.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  flex: 1 1;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
 define('text!state/state-session-chooser.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  flex: 1 1;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
-define('text!state/state-session-chooser.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./state-repository-chooser.css\"></require>\r\n    <div class=\"header\">\r\n        <h1>Session Chooser (${stateRepoUniqueId}) </h1>\r\n        <p>${message} </p>\r\n        <h3>Choose Session:</h3>\r\n        <div class=\"input-group input-group-lg\">\r\n            <select class=\"form-control\" value.bind=\"sessionId\">\r\n                <option value.bind=\"''\">(New Session)</option>\r\n                <option value.bind=\"s\" repeat.for=\"s of sessionList\">${s}</option>\r\n            </select>\r\n            <span class=\"input-group-addon\" click.trigger=\"choose()\">\r\n                <i class=\"fa fa-arrow-circle-right fa-lg\"></i>\r\n            </span>\r\n        </div>\r\n\r\n    </div>\r\n    <div class=\"body\"></div>\r\n</template>\r\n"; });
 define('text!views/one/one.html', ['module'], function(module) { module.exports = "<template>\r\n    <h1>one</h1>\r\n</template>"; });
-define('text!views/two/two.html', ['module'], function(module) { module.exports = "<template>\r\n    <h1>two</h1>\r\n</template>"; });
 define('text!views/three/three.html', ['module'], function(module) { module.exports = "<template>\r\n    <h1>three</h1>\r\n</template>"; });
+define('text!views/two/two.html', ['module'], function(module) { module.exports = "<template>\r\n    <h1>two</h1>\r\n</template>"; });
 //# sourceMappingURL=app-bundle.js.map

@@ -6,6 +6,7 @@ export class ViewInstance {
         let viewInstance = new ViewInstance();
         viewInstance.uniqueId = json.uniqueId;
         viewInstance.viewId = json.viewId;
+        viewInstance.viewTemplate = json.viewTemplate;
         viewInstance.viewModel = json.viewModel;
         viewInstance.viewState = json.viewState;
         viewInstance.paneType = json.paneType;
@@ -15,6 +16,7 @@ export class ViewInstance {
     public uniqueId: string;
     public viewId: string;
     public paneType: PaneType;
+    public viewTemplate: string;
     public viewModel: string;
     public viewState: string;
     public activePak: ActivePak;
@@ -51,6 +53,7 @@ export interface ViewInstanceJSON {
     uniqueId: string;
     viewId: string;
     paneType: PaneType;
+    viewTemplate: string;
     viewModel: string;
     viewState: string;
 }

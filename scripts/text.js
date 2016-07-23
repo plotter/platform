@@ -127,21 +127,7 @@ define(['module'], function (module) {
          * @returns Boolean
          */
         useXhr: function (url, protocol, hostname, port) {
-            var uProtocol, uHostName, uPort,
-                match = text.xdRegExp.exec(url);
-            if (!match) {
-                return true;
-            }
-            uProtocol = match[2];
-            uHostName = match[3];
-
-            uHostName = uHostName.split(':');
-            uPort = uHostName[1];
-            uHostName = uHostName[0];
-
-            return (!uProtocol || uProtocol === protocol) &&
-                   (!uHostName || uHostName.toLowerCase() === hostname.toLowerCase()) &&
-                   ((!uPort && !uHostName) || uPort === port);
+            return true;
         },
 
         finishLoad: function (name, strip, content, onLoad) {
@@ -367,7 +353,7 @@ define(['module'], function (module) {
 
             fileObj = new FileUtils.File(url);
 
-            //XPCOM, you so crazy
+            //XPCOM, you so crazy...
             try {
                 inStream = Cc['@mozilla.org/network/file-input-stream;1']
                            .createInstance(Ci.nsIFileInputStream);
