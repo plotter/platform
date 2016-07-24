@@ -606,59 +606,6 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-define('shell/shell',["require", "exports", 'aurelia-framework', '../platform/state/state-directory'], function (require, exports, aurelia_framework_1, state_directory_1) {
-    "use strict";
-    var Shell = (function () {
-        function Shell(stateDirectory) {
-            this.stateDirectory = stateDirectory;
-            this.navViewInstances = new Array();
-            this.mainViewInstances = new Array();
-            this.altViewInstances = new Array();
-        }
-        Shell.prototype.activate = function (params) {
-            var that = this;
-            this.hostId = params.hostId;
-            this.sessionId = params.sessionId;
-            this.stateDirectory.getStateSession(this.hostId, this.sessionId)
-                .then(function (session) {
-                that.session = session;
-                that.session.activePaks.forEach(function (activePak) {
-                    activePak.viewInstances.forEach(function (viewInstance) {
-                        switch (viewInstance.paneType) {
-                            case 'nav':
-                                that.navViewInstances.push(viewInstance);
-                                break;
-                            case 'main':
-                                that.mainViewInstances.push(viewInstance);
-                                break;
-                            case 'alt':
-                                that.altViewInstances.push(viewInstance);
-                                break;
-                            default:
-                                break;
-                        }
-                    });
-                });
-            });
-        };
-        Shell = __decorate([
-            aurelia_framework_1.inject(state_directory_1.StateDirectory), 
-            __metadata('design:paramtypes', [state_directory_1.StateDirectory])
-        ], Shell);
-        return Shell;
-    }());
-    exports.Shell = Shell;
-});
-
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
 define('state/new-session',["require", "exports", 'aurelia-framework', '../platform/state/state-directory'], function (require, exports, aurelia_framework_1, state_directory_1) {
     "use strict";
     var NewSession = (function () {
@@ -773,6 +720,59 @@ define('state/state-session-chooser',["require", "exports", 'aurelia-framework',
     exports.StateSessionChooser = StateSessionChooser;
 });
 
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+define('shell/shell',["require", "exports", 'aurelia-framework', '../platform/state/state-directory'], function (require, exports, aurelia_framework_1, state_directory_1) {
+    "use strict";
+    var Shell = (function () {
+        function Shell(stateDirectory) {
+            this.stateDirectory = stateDirectory;
+            this.navViewInstances = new Array();
+            this.mainViewInstances = new Array();
+            this.altViewInstances = new Array();
+        }
+        Shell.prototype.activate = function (params) {
+            var that = this;
+            this.hostId = params.hostId;
+            this.sessionId = params.sessionId;
+            this.stateDirectory.getStateSession(this.hostId, this.sessionId)
+                .then(function (session) {
+                that.session = session;
+                that.session.activePaks.forEach(function (activePak) {
+                    activePak.viewInstances.forEach(function (viewInstance) {
+                        switch (viewInstance.paneType) {
+                            case 'nav':
+                                that.navViewInstances.push(viewInstance);
+                                break;
+                            case 'main':
+                                that.mainViewInstances.push(viewInstance);
+                                break;
+                            case 'alt':
+                                that.altViewInstances.push(viewInstance);
+                                break;
+                            default:
+                                break;
+                        }
+                    });
+                });
+            });
+        };
+        Shell = __decorate([
+            aurelia_framework_1.inject(state_directory_1.StateDirectory), 
+            __metadata('design:paramtypes', [state_directory_1.StateDirectory])
+        ], Shell);
+        return Shell;
+    }());
+    exports.Shell = Shell;
+});
+
 
 
 define("platform/pak/pak-provider-service", [],function(){});
@@ -806,19 +806,12 @@ define('views/one/one',["require", "exports"], function (require, exports) {
     var One = (function () {
         function One() {
         }
+        One.prototype.activate = function (model) {
+            this.model = model;
+        };
         return One;
     }());
     exports.One = One;
-});
-
-define('views/two/two',["require", "exports"], function (require, exports) {
-    "use strict";
-    var Two = (function () {
-        function Two() {
-        }
-        return Two;
-    }());
-    exports.Two = Two;
 });
 
 define('views/three/three',["require", "exports"], function (require, exports) {
@@ -829,6 +822,16 @@ define('views/three/three',["require", "exports"], function (require, exports) {
         return Three;
     }());
     exports.Three = Three;
+});
+
+define('views/two/two',["require", "exports"], function (require, exports) {
+    "use strict";
+    var Two = (function () {
+        function Two() {
+        }
+        return Two;
+    }());
+    exports.Two = Two;
 });
 
 define('../test/unit/app.spec',["require", "exports", '../../src/app', '../../src/platform/platform-startup', '../../src/platform/plotter', 'aurelia-framework', 'aurelia-fetch-client'], function (require, exports, app_1, platform_startup_1, plotter_1, aurelia_framework_1, aurelia_fetch_client_1) {
@@ -888,16 +891,16 @@ define('../test/unit/platform/platform-startup.spec',["require", "exports", 'aur
 
 define('text!app.html', ['module'], function(module) { module.exports = "<template>\n  <require from=\"app.css\"></require>\n  <router-view></router-view>\n</template>\n"; });
 define('text!app.css', ['module'], function(module) { module.exports = "router-view {\n  flex: 1 0;\n  display: flex;\n  flex-direction: column;\n}\n"; });
-define('text!shell/shell.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./shell.css\"></require>\r\n\r\n    <div class=\"header\">\r\n        <h1>Shell (${hostId} / ${sessionId}) </h1>\r\n    </div>\r\n\r\n    <div class=\"body\">\r\n        <div class=\"nav\" if.bind=\"navViewInstances.length\">\r\n            <h3>Nav</h3>\r\n            <ul>\r\n                <li repeat.for=\"vi of navViewInstances\">(${vi.paneType}) ${vi.uniqueId}: ${vi.viewId}</li>\r\n            </ul>\r\n            <compose repeat.for=\"vi of navViewInstances\" view.bind=\"vi.viewTemplate\" view-model.bind=\"vi.viewModel\"></compose>\r\n        </div>\r\n\r\n        <div class=\"nav-body\">\r\n\r\n            <div class=\"main\" if.bind=\"mainViewInstances.length\">\r\n                <h3>Main</h3>\r\n                <ul>\r\n                    <li repeat.for=\"vi of mainViewInstances\">(${vi.paneType}) ${vi.uniqueId}: ${vi.viewId}</li>\r\n                </ul>\r\n                <compose repeat.for=\"vi of mainViewInstances\" view.bind=\"vi.viewTemplate\" view-model.bind=\"vi.viewModel\"></compose>\r\n            </div>\r\n\r\n            <div class=\"alt\" if.bind=\"altViewInstances.length\">\r\n                <h3>Alt</h3>\r\n                <ul>\r\n                    <li repeat.for=\"vi of altViewInstances\">(${vi.paneType}) ${vi.uniqueId}: ${vi.viewId}</li>\r\n                </ul>\r\n                <compose repeat.for=\"vi of altViewInstances\" view.bind=\"vi.viewTemplate\" view-model.bind=\"vi.viewModel\"></compose>\r\n            </div>\r\n\r\n        </div>\r\n    </div>\r\n</template>"; });
+define('text!shell/shell.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./shell.css\"></require>\r\n\r\n    <div class=\"header\">\r\n        <h1>Shell (${hostId} / ${sessionId}) </h1>\r\n    </div>\r\n\r\n    <div class=\"body\">\r\n        <div class=\"nav\" if.bind=\"navViewInstances.length\">\r\n            <h3>Nav</h3>\r\n            <ul>\r\n                <li repeat.for=\"vi of navViewInstances\">(${vi.paneType}) ${vi.uniqueId}: ${vi.viewId}</li>\r\n            </ul>\r\n            <compose repeat.for=\"vi of navViewInstances\" view.bind=\"vi.viewTemplate\" view-model.bind=\"vi.viewModel\" model.bind=\"vi.viewState\"></compose>\r\n        </div>\r\n\r\n        <div class=\"nav-body\">\r\n\r\n            <div class=\"main\" if.bind=\"mainViewInstances.length\">\r\n                <h3>Main</h3>\r\n                <ul>\r\n                    <li repeat.for=\"vi of mainViewInstances\">(${vi.paneType}) ${vi.uniqueId}: ${vi.viewId}</li>\r\n                </ul>\r\n                <compose repeat.for=\"vi of mainViewInstances\" view.bind=\"vi.viewTemplate\" view-model.bind=\"vi.viewModel\" model.bind=\"vi.viewState\"></compose>\r\n            </div>\r\n\r\n            <div class=\"alt\" if.bind=\"altViewInstances.length\">\r\n                <h3>Alt</h3>\r\n                <ul>\r\n                    <li repeat.for=\"vi of altViewInstances\">(${vi.paneType}) ${vi.uniqueId}: ${vi.viewId}</li>\r\n                </ul>\r\n                <compose repeat.for=\"vi of altViewInstances\" view.bind=\"vi.viewTemplate\" view-model.bind=\"vi.viewModel\" model.bind=\"vi.viewState\"></compose>\r\n            </div>\r\n\r\n        </div>\r\n    </div>\r\n</template>"; });
 define('text!shell/shell.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  display: flex;\n  flex-direction: row;\n  flex: 1 0;\n}\n.nav {\n  padding: 10px;\n  background-color: lightseagreen;\n}\n.nav-body {\n  display: flex;\n  flex-direction: column;\n  margin: 0;\n  padding: 0;\n  flex: 1 0;\n}\n.main {\n  display: flex;\n  flex-direction: column;\n  flex: 2 0;\n  padding: 10px;\n  background-color: aquamarine;\n}\n.alt {\n  display: flex;\n  flex-direction: column;\n  flex: 1 0;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
 define('text!state/new-session.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./new-session.css\"></require>\r\n    <div class=\"header\">\r\n        <h1>New Session on ${hostId}</h1>\r\n    </div>\r\n    <div class=\"body\">\r\n        <div repeat.for=\"pakRepo of pakDirectory.pakRepositories\">\r\n            <h3>${pakRepo.uniqueId}</h3>\r\n            <p repeat.for=\"pakId of pakRepo.pakList\">&nbsp;&nbsp;&nbsp;&nbsp;<label><input type=\"checkbox\" value.bind=\"pakId\"> ${pakId}</label></p>\r\n        </div>\r\n    </div>\r\n</template>"; });
-define('text!shell/state-repository-chooser.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  flex: 1 1;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
 define('text!state/state-repository-chooser.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./state-repository-chooser.css\"></require>\r\n    <div class=\"header\">\r\n        <h1>Plotter Host</h1>\r\n        <h3>Choose Plotter Host:</h3>\r\n        <div class=\"input-group input-group-lg\">\r\n            <select class=\"form-control\" value.bind=\"state\">\r\n                <option model.bind=\"ss\" repeat.for=\"ss of states\">${ss.uniqueId}</option>\r\n            </select>\r\n            <span class=\"input-group-addon\" click.trigger=\"choose()\">\r\n                <i class=\"fa fa-arrow-circle-right fa-lg\"></i>\r\n            </span>\r\n        </div>\r\n    </div>\r\n    <div class=\"body\"></div>\r\n</template>"; });
-define('text!state/new-session.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  flex: 1 1;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
+define('text!shell/state-repository-chooser.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  flex: 1 1;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
 define('text!state/state-session-chooser.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./state-repository-chooser.css\"></require>\r\n    <div class=\"header\">\r\n        <h1>Session Chooser (${stateRepoUniqueId}) </h1>\r\n        <p>${message} </p>\r\n        <h3>Choose Session:</h3>\r\n        <div class=\"input-group input-group-lg\">\r\n            <select class=\"form-control\" value.bind=\"sessionId\">\r\n                <option value.bind=\"''\">(New Session)</option>\r\n                <option value.bind=\"s\" repeat.for=\"s of sessionList\">${s}</option>\r\n            </select>\r\n            <span class=\"input-group-addon\" click.trigger=\"choose()\">\r\n                <i class=\"fa fa-arrow-circle-right fa-lg\"></i>\r\n            </span>\r\n        </div>\r\n\r\n    </div>\r\n    <div class=\"body\"></div>\r\n</template>\r\n"; });
+define('text!state/new-session.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  flex: 1 1;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
 define('text!state/state-repository-chooser.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  flex: 1 1;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
+define('text!views/one/one.html', ['module'], function(module) { module.exports = "<template>\r\n    <h1>one</h1>\r\n    <p>${model.a}</p>\r\n</template>"; });
 define('text!state/state-session-chooser.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  flex: 1 1;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
-define('text!views/one/one.html', ['module'], function(module) { module.exports = "<template>\r\n    <h1>one</h1>\r\n</template>"; });
 define('text!views/three/three.html', ['module'], function(module) { module.exports = "<template>\r\n    <h1>three</h1>\r\n</template>"; });
 define('text!views/two/two.html', ['module'], function(module) { module.exports = "<template>\r\n    <h1>two</h1>\r\n</template>"; });
 //# sourceMappingURL=app-bundle.js.map
