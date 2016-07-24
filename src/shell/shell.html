@@ -6,30 +6,36 @@
     </div>
 
     <div class="body">
-        <div class="nav" if.bind="navViewInstances.length">
-            <h3>Nav</h3>
-            <ul>
-                <li repeat.for="vi of navViewInstances">(${vi.paneType}) ${vi.uniqueId}: ${vi.viewId}</li>
-            </ul>
-            <compose repeat.for="vi of navViewInstances" view.bind="vi.viewTemplate" view-model.bind="vi.viewModel" model.bind="vi.viewState"></compose>
+        <div class="nav">
+            <div class="navHost" if.bind="navViewInstances.length">
+                <h3>Nav</h3>
+                <ul>
+                    <li repeat.for="vi of navViewInstances">(${vi.paneType}) ${vi.uniqueId}: ${vi.viewId}</li>
+                </ul>
+                <compose repeat.for="vi of navViewInstances" view.bind="vi.viewTemplate" view-model.bind="vi.viewModel" model.bind="vi.viewState"></compose>
+            </div>
         </div>
 
         <div class="nav-body">
 
-            <div class="main" if.bind="mainViewInstances.length">
-                <h3>Main</h3>
-                <ul>
-                    <li repeat.for="vi of mainViewInstances">(${vi.paneType}) ${vi.uniqueId}: ${vi.viewId}</li>
-                </ul>
-                <compose repeat.for="vi of mainViewInstances" view.bind="vi.viewTemplate" view-model.bind="vi.viewModel" model.bind="vi.viewState"></compose>
+            <div class="main">
+                <div class="mainHost" if.bind="mainViewInstances.length">
+                    <h3>Main</h3>
+                    <ul>
+                        <li repeat.for="vi of mainViewInstances">(${vi.paneType}) ${vi.uniqueId}: ${vi.viewId}</li>
+                    </ul>
+                    <compose repeat.for="vi of mainViewInstances" view.bind="vi.viewTemplate" view-model.bind="vi.viewModel" model.bind="vi.viewState"></compose>
+                </div>
             </div>
 
-            <div class="alt" if.bind="altViewInstances.length">
-                <h3>Alt</h3>
-                <ul>
-                    <li repeat.for="vi of altViewInstances">(${vi.paneType}) ${vi.uniqueId}: ${vi.viewId}</li>
-                </ul>
-                <compose repeat.for="vi of altViewInstances" view.bind="vi.viewTemplate" view-model.bind="vi.viewModel" model.bind="vi.viewState"></compose>
+            <div class="alt">
+                <div class="altHost" if.bind="altViewInstances.length">
+                    <h3>Alt</h3>
+                    <ul>
+                        <li repeat.for="vi of altViewInstances">(${vi.paneType}) ${vi.uniqueId}: ${vi.viewId}</li>
+                    </ul>
+                    <compose repeat.for="vi of altViewInstances" view.bind="vi.viewTemplate" view-model.bind="vi.viewModel" model.bind="vi.viewState"></compose>
+                </div>
             </div>
 
         </div>
