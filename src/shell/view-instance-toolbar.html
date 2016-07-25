@@ -1,6 +1,6 @@
 <template>
     <require from="./view-instance-toolbar.css"></require>
-    <h4>VI Toolbar</h4>
+
     <div class="btn-group" data-toggle="buttons">
         <label repeat.for="vi of viewInstances" class="btn btn-primary ${vi === $parent.activeViewInstance ? 'active' : ''}">
             <input type="radio" name="vi" model.bind="vi" checked.bind="$parent.activeViewInstance"><i class="fa fa-plug"></i>

@@ -7,49 +7,64 @@
     </div>
 
     <div class="body">
-        <div class="nav">
+        <div class="nav" if.bind="navViewInstances.length">
             <div class="nav-body">
-                <div class="nav-host" if.bind="navViewInstances.length">
-                    <h3>Nav</h3>
-                    <ul>
-                        <li repeat.for="vi of navViewInstances">(${vi.paneType}) ${vi.uniqueId}: ${vi.viewId}</li>
-                    </ul>
-                    <compose repeat.for="vi of navViewInstances" view.bind="vi.viewTemplate" view-model.bind="vi.viewModel" model.bind="vi.viewState"></compose>
+                <div class="nav-host">
+                    <compose
+                        repeat.for="vi of navViewInstances"
+                        view.bind="vi.viewTemplate"
+                        view-model.bind="vi.viewModel"
+                        model.bind="vi.viewState"
+                        show.bind="vi === $parent.navActiveViewInstance">
+                    </compose>
                 </div>
             </div>
-            <div class="nav-toolbar">
-                <view-instance-toolbar view-instances.bind="navViewInstances"></view-instance-toolbar>
+            <div class="nav-toolbar" if.bind="navViewInstances.length > 1">
+                <view-instance-toolbar
+                    view-instances.bind="navViewInstances"
+                    active-view-instance.two-way="navActiveViewInstance">
+                </view-instance-toolbar>
             </div>
         </div>
 
         <div class="body2">
 
-            <div class="main">
-                <div class="main-toolbar">
-                    <view-instance-toolbar view-instances.bind="mainViewInstances"></view-instance-toolbar>
+            <div class="main" if.bind="mainViewInstances.length">
+                <div class="main-toolbar" if.bind="mainViewInstances.length > 1">
+                    <view-instance-toolbar
+                        view-instances.bind="mainViewInstances"
+                        active-view-instance.two-way="mainActiveViewInstance">
+                    </view-instance-toolbar>
                 </div>
                 <div class="main-body">
-                    <div class="main-host" if.bind="mainViewInstances.length">
-                        <h3>Main</h3>
-                        <ul>
-                            <li repeat.for="vi of mainViewInstances">(${vi.paneType}) ${vi.uniqueId}: ${vi.viewId}</li>
-                        </ul>
-                        <compose repeat.for="vi of mainViewInstances" view.bind="vi.viewTemplate" view-model.bind="vi.viewModel" model.bind="vi.viewState"></compose>
+                    <div class="main-host">
+                        <compose
+                            repeat.for="vi of mainViewInstances"
+                            view.bind="vi.viewTemplate"
+                            view-model.bind="vi.viewModel"
+                            model.bind="vi.viewState"
+                            show.bind="vi === $parent.mainActiveViewInstance">
+                        </compose>
                     </div>
                 </div>
             </div>
 
-            <div class="alt">
-                <div class="alt-toolbar">
-                    <view-instance-toolbar view-instances.bind="altViewInstances"></view-instance-toolbar>
+            <div class="alt" if.bind="altViewInstances.length">
+                <div class="alt-toolbar" if.bind="altViewInstances.length > 1">
+                    <view-instance-toolbar
+                        view-instances.bind="altViewInstances"
+                        active-view-instance.two-way="altActiveViewInstance">
+                    </view-instance-toolbar>
                 </div>
                 <div class="alt-body">
-                    <div class="alt-host" if.bind="altViewInstances.length">
-                        <h3>Alt</h3>
-                        <ul>
-                            <li repeat.for="vi of altViewInstances">(${vi.paneType}) ${vi.uniqueId}: ${vi.viewId}</li>
-                        </ul>
-                        <compose repeat.for="vi of altViewInstances" view.bind="vi.viewTemplate" view-model.bind="vi.viewModel" model.bind="vi.viewState"></compose>
+                    <div class="alt-host">
+                        <compose
+                            repeat.for="vi of altViewInstances"
+                            view.bind="vi.viewTemplate"
+                            view-model.bind="vi.viewModel"
+                            model.bind="vi.viewState"
+                            show.bind="vi === $parent.altActiveViewInstance">
+                        </compose>
                     </div>
                 </div>
             </div>

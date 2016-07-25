@@ -10,8 +10,13 @@ export class Shell {
     public session: StateSession;
 
     public navViewInstances = new Array<ViewInstance>();
+    public navActiveViewInstance;
+
     public mainViewInstances = new Array<ViewInstance>();
+    public mainActiveViewInstance;
+
     public altViewInstances = new Array<ViewInstance>();
+    public altActiveViewInstance;
 
     constructor(private stateDirectory: StateDirectory) { }
 
@@ -30,14 +35,23 @@ export class Shell {
                         switch (viewInstance.paneType) {
                             case 'nav':
                             that.navViewInstances.push(viewInstance);
+                            if (!that.navActiveViewInstance) {
+                                that.navActiveViewInstance = viewInstance;
+                            }
                             break;
 
                             case 'main':
                             that.mainViewInstances.push(viewInstance);
+                            if (!that.mainActiveViewInstance) {
+                                that.mainActiveViewInstance = viewInstance;
+                            }
                             break;
 
                             case 'alt':
                             that.altViewInstances.push(viewInstance);
+                            if (!that.altActiveViewInstance) {
+                                that.altActiveViewInstance = viewInstance;
+                            }
                             break;
 
                             default:
