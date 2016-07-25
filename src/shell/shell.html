@@ -1,5 +1,6 @@
 <template>
     <require from="./shell.css"></require>
+    <require from="./view-instance-toolbar"></require>
 
     <div class="header">
         <h1>Shell (${hostId} / ${sessionId}) </h1>
@@ -7,34 +8,49 @@
 
     <div class="body">
         <div class="nav">
-            <div class="navHost" if.bind="navViewInstances.length">
-                <h3>Nav</h3>
-                <ul>
-                    <li repeat.for="vi of navViewInstances">(${vi.paneType}) ${vi.uniqueId}: ${vi.viewId}</li>
-                </ul>
-                <compose repeat.for="vi of navViewInstances" view.bind="vi.viewTemplate" view-model.bind="vi.viewModel" model.bind="vi.viewState"></compose>
+            <div class="nav-body">
+                <div class="nav-host" if.bind="navViewInstances.length">
+                    <h3>Nav</h3>
+                    <ul>
+                        <li repeat.for="vi of navViewInstances">(${vi.paneType}) ${vi.uniqueId}: ${vi.viewId}</li>
+                    </ul>
+                    <compose repeat.for="vi of navViewInstances" view.bind="vi.viewTemplate" view-model.bind="vi.viewModel" model.bind="vi.viewState"></compose>
+                </div>
+            </div>
+            <div class="nav-toolbar">
+                <view-instance-toolbar></view-instance-toolbar>
             </div>
         </div>
 
-        <div class="nav-body">
+        <div class="body2">
 
             <div class="main">
-                <div class="mainHost" if.bind="mainViewInstances.length">
-                    <h3>Main</h3>
-                    <ul>
-                        <li repeat.for="vi of mainViewInstances">(${vi.paneType}) ${vi.uniqueId}: ${vi.viewId}</li>
-                    </ul>
-                    <compose repeat.for="vi of mainViewInstances" view.bind="vi.viewTemplate" view-model.bind="vi.viewModel" model.bind="vi.viewState"></compose>
+                <div class="main-toolbar">
+                    <view-instance-toolbar></view-instance-toolbar>
+                </div>
+                <div class="main-body">
+                    <div class="main-host" if.bind="mainViewInstances.length">
+                        <h3>Main</h3>
+                        <ul>
+                            <li repeat.for="vi of mainViewInstances">(${vi.paneType}) ${vi.uniqueId}: ${vi.viewId}</li>
+                        </ul>
+                        <compose repeat.for="vi of mainViewInstances" view.bind="vi.viewTemplate" view-model.bind="vi.viewModel" model.bind="vi.viewState"></compose>
+                    </div>
                 </div>
             </div>
 
             <div class="alt">
-                <div class="altHost" if.bind="altViewInstances.length">
-                    <h3>Alt</h3>
-                    <ul>
-                        <li repeat.for="vi of altViewInstances">(${vi.paneType}) ${vi.uniqueId}: ${vi.viewId}</li>
-                    </ul>
-                    <compose repeat.for="vi of altViewInstances" view.bind="vi.viewTemplate" view-model.bind="vi.viewModel" model.bind="vi.viewState"></compose>
+                <div class="alt-toolbar">
+                    <view-instance-toolbar></view-instance-toolbar>
+                </div>
+                <div class="alt-body">
+                    <div class="alt-host" if.bind="altViewInstances.length">
+                        <h3>Alt</h3>
+                        <ul>
+                            <li repeat.for="vi of altViewInstances">(${vi.paneType}) ${vi.uniqueId}: ${vi.viewId}</li>
+                        </ul>
+                        <compose repeat.for="vi of altViewInstances" view.bind="vi.viewTemplate" view-model.bind="vi.viewModel" model.bind="vi.viewState"></compose>
+                    </div>
                 </div>
             </div>
 
