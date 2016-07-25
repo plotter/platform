@@ -18,7 +18,7 @@
                 </div>
             </div>
             <div class="nav-toolbar">
-                <view-instance-toolbar></view-instance-toolbar>
+                <view-instance-toolbar view-instances.bind="navViewInstances"></view-instance-toolbar>
             </div>
         </div>
 
@@ -26,7 +26,7 @@
 
             <div class="main">
                 <div class="main-toolbar">
-                    <view-instance-toolbar></view-instance-toolbar>
+                    <view-instance-toolbar view-instances.bind="mainViewInstances"></view-instance-toolbar>
                 </div>
                 <div class="main-body">
                     <div class="main-host" if.bind="mainViewInstances.length">
@@ -41,7 +41,7 @@
 
             <div class="alt">
                 <div class="alt-toolbar">
-                    <view-instance-toolbar></view-instance-toolbar>
+                    <view-instance-toolbar view-instances.bind="altViewInstances"></view-instance-toolbar>
                 </div>
                 <div class="alt-body">
                     <div class="alt-host" if.bind="altViewInstances.length">
