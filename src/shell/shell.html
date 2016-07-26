@@ -33,7 +33,8 @@
                 <div class="main-toolbar" if.bind="mainViewInstances.length > 1">
                     <view-instance-toolbar
                         view-instances.bind="mainViewInstances"
-                        active-view-instance.two-way="mainActiveViewInstance">
+                        active-view-instance.two-way="mainActiveViewInstance"
+                        show-title="true">
                     </view-instance-toolbar>
                 </div>
                 <div class="main-body">
@@ -53,7 +54,8 @@
                 <div class="alt-toolbar" if.bind="altViewInstances.length > 1">
                     <view-instance-toolbar
                         view-instances.bind="altViewInstances"
-                        active-view-instance.two-way="altActiveViewInstance">
+                        active-view-instance.two-way="altActiveViewInstance"
+                        show-title="true">
                     </view-instance-toolbar>
                 </div>
                 <div class="alt-body">

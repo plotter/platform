@@ -5,4 +5,5 @@ import { ViewInstance } from '../platform/state/view-instance';
 export class ViewInstanceToolbar {
     @bindable() public activeViewInstance: ViewInstance;
     @bindable() public viewInstances: ViewInstance[];
+    @bindable() public showTitle: boolean;
 }

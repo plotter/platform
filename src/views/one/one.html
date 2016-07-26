@@ -5,6 +5,7 @@
     <select value.bind="targetPane">
         <option repeat.for="p of ['nav', 'main', 'alt']" value.bind="p">${p}</option>
     </select>
+    <input type="text" value.bind="targetViewModel" />
     <input type="text" value.bind="targetMessage" />
     <button click.trigger="launchTarget()">Launch</button>
 </template>

@@ -44,7 +44,7 @@ export class Shell {
             });
     }
 
-    focusViewInstance = (viewInstance: ViewInstance) => {
+    public focusViewInstance = (viewInstance: ViewInstance) => {
         switch (viewInstance.paneType) {
             case 'nav':
                 this.navActiveViewInstance = viewInstance;
@@ -63,7 +63,7 @@ export class Shell {
         }
     }
 
-    launchViewInstance = (viewInstance: ViewInstance) => {
+    public launchViewInstance = (viewInstance: ViewInstance) => {
         switch (viewInstance.paneType) {
             case 'nav':
                 this.navViewInstances.push(viewInstance);

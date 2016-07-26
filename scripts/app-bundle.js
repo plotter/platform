@@ -147,6 +147,12 @@ define('platform/state/view-instance',["require", "exports"], function (require,
         ViewInstance.fromJSON = function (json) {
             var viewInstance = new ViewInstance();
             viewInstance.uniqueId = json.uniqueId;
+            if (!json.title) {
+                viewInstance.title = json.uniqueId;
+            }
+            else {
+                viewInstance.title = json.title;
+            }
             viewInstance.viewId = json.viewId;
             viewInstance.viewTemplate = json.viewTemplate;
             viewInstance.viewModel = json.viewModel;
@@ -828,6 +834,10 @@ define('shell/view-instance-toolbar',["require", "exports", 'aurelia-framework',
             aurelia_framework_1.bindable(), 
             __metadata('design:type', Array)
         ], ViewInstanceToolbar.prototype, "viewInstances", void 0);
+        __decorate([
+            aurelia_framework_1.bindable(), 
+            __metadata('design:type', Boolean)
+        ], ViewInstanceToolbar.prototype, "showTitle", void 0);
         ViewInstanceToolbar = __decorate([
             aurelia_framework_1.customElement('view-instance-toolbar'), 
             __metadata('design:paramtypes', [])
@@ -881,20 +891,21 @@ define('views/one/one',["require", "exports", 'aurelia-framework', '../../shell/
             this.shell = shell;
             this.targetPane = 'main';
             this.targetMessage = 'some message from you...';
+            this.targetViewModel = '../views/one/one';
         }
         One.prototype.activate = function (model) {
             this.model = model;
         };
         One.prototype.launchTarget = function () {
             this.shell.launchViewInstanceJSON({
-                "uniqueId": "vi-05",
-                "viewId": "view3",
-                "paneType": this.targetPane,
-                "viewTemplate": null,
-                "viewModel": "../views/one/one",
-                "viewState": {
-                    "a": this.targetMessage
-                }
+                'uniqueId': 'vi-05',
+                'viewId': 'view3',
+                'paneType': this.targetPane,
+                'viewTemplate': null,
+                'viewModel': this.targetViewModel,
+                'viewState': {
+                    'a': this.targetMessage,
+                },
             });
         };
         One = __decorate([
@@ -981,6 +992,16 @@ define('../test/unit/platform/platform-startup.spec',["require", "exports", 'aur
     });
 });
 
+define('views/globe/globe',["require", "exports"], function (require, exports) {
+    "use strict";
+    var Globe = (function () {
+        function Globe() {
+        }
+        return Globe;
+    }());
+    exports.Globe = Globe;
+});
+
 define('text!app.html', ['module'], function(module) { module.exports = "<template>\n  <require from=\"app.css\"></require>\n  <router-view></router-view>\n</template>\n"; });
 define('text!state/new-session.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./new-session.css\"></require>\r\n    <div class=\"header\">\r\n        <h1>New Session on ${hostId}</h1>\r\n    </div>\r\n    <div class=\"body\">\r\n        <div repeat.for=\"pakRepo of pakDirectory.pakRepositories\">\r\n            <h3>${pakRepo.uniqueId}</h3>\r\n            <p repeat.for=\"pakId of pakRepo.pakList\">&nbsp;&nbsp;&nbsp;&nbsp;<label><input type=\"checkbox\" value.bind=\"pakId\"> ${pakId}</label></p>\r\n        </div>\r\n    </div>\r\n</template>"; });
 define('text!app.css', ['module'], function(module) { module.exports = "router-view {\n  flex: 1 0;\n  display: flex;\n  flex-direction: column;\n}\n"; });
@@ -989,13 +1010,14 @@ define('text!state/new-session.css', ['module'], function(module) { module.expor
 define('text!state/state-repository-chooser.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  flex: 1 1;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
 define('text!state/state-session-chooser.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./state-repository-chooser.css\"></require>\r\n    <div class=\"header\">\r\n        <h1>Session Chooser (${stateRepoUniqueId}) </h1>\r\n        <p>${message} </p>\r\n        <h3>Choose Session:</h3>\r\n        <div class=\"input-group input-group-lg\">\r\n            <select class=\"form-control\" value.bind=\"sessionId\">\r\n                <option value.bind=\"''\">(New Session)</option>\r\n                <option value.bind=\"s\" repeat.for=\"s of sessionList\">${s}</option>\r\n            </select>\r\n            <span class=\"input-group-addon\" click.trigger=\"choose()\">\r\n                <i class=\"fa fa-arrow-circle-right fa-lg\"></i>\r\n            </span>\r\n        </div>\r\n\r\n    </div>\r\n    <div class=\"body\"></div>\r\n</template>\r\n"; });
 define('text!state/state-session-chooser.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  flex: 1 1;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
-define('text!shell/shell.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./shell.css\"></require>\r\n    <require from=\"./view-instance-toolbar\"></require>\r\n\r\n    <div class=\"header\">\r\n        <h1>Shell (${hostId} / ${sessionId}) </h1>\r\n    </div>\r\n\r\n    <div class=\"body\">\r\n        <div class=\"nav\" if.bind=\"navViewInstances.length\">\r\n            <div class=\"nav-body\">\r\n                <div class=\"nav-host\">\r\n                    <compose\r\n                        repeat.for=\"vi of navViewInstances\"\r\n                        view.bind=\"vi.viewTemplate\"\r\n                        view-model.bind=\"vi.viewModel\"\r\n                        model.bind=\"vi.viewState\"\r\n                        show.bind=\"vi === $parent.navActiveViewInstance\">\r\n                    </compose>\r\n                </div>\r\n            </div>\r\n            <div class=\"nav-toolbar\" if.bind=\"navViewInstances.length > 1\">\r\n                <view-instance-toolbar\r\n                    view-instances.bind=\"navViewInstances\"\r\n                    active-view-instance.two-way=\"navActiveViewInstance\">\r\n                </view-instance-toolbar>\r\n            </div>\r\n        </div>\r\n\r\n        <div class=\"body2\">\r\n\r\n            <div class=\"main\" if.bind=\"mainViewInstances.length\">\r\n                <div class=\"main-toolbar\" if.bind=\"mainViewInstances.length > 1\">\r\n                    <view-instance-toolbar\r\n                        view-instances.bind=\"mainViewInstances\"\r\n                        active-view-instance.two-way=\"mainActiveViewInstance\">\r\n                    </view-instance-toolbar>\r\n                </div>\r\n                <div class=\"main-body\">\r\n                    <div class=\"main-host\">\r\n                        <compose\r\n                            repeat.for=\"vi of mainViewInstances\"\r\n                            view.bind=\"vi.viewTemplate\"\r\n                            view-model.bind=\"vi.viewModel\"\r\n                            model.bind=\"vi.viewState\"\r\n                            show.bind=\"vi === $parent.mainActiveViewInstance\">\r\n                        </compose>\r\n                    </div>\r\n                </div>\r\n            </div>\r\n\r\n            <div class=\"alt\" if.bind=\"altViewInstances.length\">\r\n                <div class=\"alt-toolbar\" if.bind=\"altViewInstances.length > 1\">\r\n                    <view-instance-toolbar\r\n                        view-instances.bind=\"altViewInstances\"\r\n                        active-view-instance.two-way=\"altActiveViewInstance\">\r\n                    </view-instance-toolbar>\r\n                </div>\r\n                <div class=\"alt-body\">\r\n                    <div class=\"alt-host\">\r\n                        <compose\r\n                            repeat.for=\"vi of altViewInstances\"\r\n                            view.bind=\"vi.viewTemplate\"\r\n                            view-model.bind=\"vi.viewModel\"\r\n                            model.bind=\"vi.viewState\"\r\n                            show.bind=\"vi === $parent.altActiveViewInstance\">\r\n                        </compose>\r\n                    </div>\r\n                </div>\r\n            </div>\r\n\r\n        </div>\r\n    </div>\r\n</template>"; });
+define('text!shell/shell.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./shell.css\"></require>\r\n    <require from=\"./view-instance-toolbar\"></require>\r\n\r\n    <div class=\"header\">\r\n        <h1>Shell (${hostId} / ${sessionId}) </h1>\r\n    </div>\r\n\r\n    <div class=\"body\">\r\n        <div class=\"nav\" if.bind=\"navViewInstances.length\">\r\n            <div class=\"nav-body\">\r\n                <div class=\"nav-host\">\r\n                    <compose\r\n                        repeat.for=\"vi of navViewInstances\"\r\n                        view.bind=\"vi.viewTemplate\"\r\n                        view-model.bind=\"vi.viewModel\"\r\n                        model.bind=\"vi.viewState\"\r\n                        show.bind=\"vi === $parent.navActiveViewInstance\">\r\n                    </compose>\r\n                </div>\r\n            </div>\r\n            <div class=\"nav-toolbar\" if.bind=\"navViewInstances.length > 1\">\r\n                <view-instance-toolbar\r\n                    view-instances.bind=\"navViewInstances\"\r\n                    active-view-instance.two-way=\"navActiveViewInstance\">\r\n                </view-instance-toolbar>\r\n            </div>\r\n        </div>\r\n\r\n        <div class=\"body2\">\r\n\r\n            <div class=\"main\" if.bind=\"mainViewInstances.length\">\r\n                <div class=\"main-toolbar\" if.bind=\"mainViewInstances.length > 1\">\r\n                    <view-instance-toolbar\r\n                        view-instances.bind=\"mainViewInstances\"\r\n                        active-view-instance.two-way=\"mainActiveViewInstance\"\r\n                        show-title=\"true\">\r\n                    </view-instance-toolbar>\r\n                </div>\r\n                <div class=\"main-body\">\r\n                    <div class=\"main-host\">\r\n                        <compose\r\n                            repeat.for=\"vi of mainViewInstances\"\r\n                            view.bind=\"vi.viewTemplate\"\r\n                            view-model.bind=\"vi.viewModel\"\r\n                            model.bind=\"vi.viewState\"\r\n                            show.bind=\"vi === $parent.mainActiveViewInstance\">\r\n                        </compose>\r\n                    </div>\r\n                </div>\r\n            </div>\r\n\r\n            <div class=\"alt\" if.bind=\"altViewInstances.length\">\r\n                <div class=\"alt-toolbar\" if.bind=\"altViewInstances.length > 1\">\r\n                    <view-instance-toolbar\r\n                        view-instances.bind=\"altViewInstances\"\r\n                        active-view-instance.two-way=\"altActiveViewInstance\"\r\n                        show-title=\"true\">\r\n                    </view-instance-toolbar>\r\n                </div>\r\n                <div class=\"alt-body\">\r\n                    <div class=\"alt-host\">\r\n                        <compose\r\n                            repeat.for=\"vi of altViewInstances\"\r\n                            view.bind=\"vi.viewTemplate\"\r\n                            view-model.bind=\"vi.viewModel\"\r\n                            model.bind=\"vi.viewState\"\r\n                            show.bind=\"vi === $parent.altActiveViewInstance\">\r\n                        </compose>\r\n                    </div>\r\n                </div>\r\n            </div>\r\n\r\n        </div>\r\n    </div>\r\n</template>"; });
 define('text!shell/shell.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n}\n.body {\n  display: flex;\n  flex-direction: row;\n  flex: 1 0;\n}\n.nav {\n  display: flex;\n  flex-direction: column;\n  background-color: lightseagreen;\n  width: 200px;\n}\n.nav-body {\n  margin: 0;\n  padding: 0;\n  flex: 1 0;\n  position: relative;\n  overflow: hidden;\n}\n.nav-toolbar {\n  background-color: cadetblue;\n}\n.nav-host {\n  position: absolute;\n  top: 0;\n  left: 0;\n  bottom: 0;\n  right: 0;\n  margin: 0;\n  padding: 0;\n  overflow: auto;\n}\n.body2 {\n  display: flex;\n  flex-direction: column;\n  flex: 1 0;\n}\n.main {\n  display: flex;\n  flex-direction: column;\n  flex: 2 0;\n  background-color: aquamarine;\n}\n.main-toolbar {\n  background-color: cadetblue;\n}\n.main-body {\n  position: relative;\n  overflow: hidden;\n  margin: 0;\n  padding: 0;\n  flex: 1 0;\n}\n.main-host {\n  position: absolute;\n  top: 0;\n  left: 0;\n  bottom: 0;\n  right: 0;\n  overflow: auto;\n}\n.alt {\n  display: flex;\n  flex-direction: column;\n  flex: 1 0;\n  background-color: darkcyan;\n}\n.alt-toolbar {\n  background-color: cadetblue;\n}\n.alt-body {\n  position: relative;\n  overflow: hidden;\n  margin: 0;\n  padding: 0;\n  flex: 1 0;\n}\n.alt-host {\n  position: absolute;\n  top: 0;\n  left: 0;\n  bottom: 0;\n  right: 0;\n  overflow: auto;\n}\n"; });
-define('text!shell/view-instance-toolbar.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./view-instance-toolbar.css\"></require>\r\n\r\n    <div class=\"btn-group\" data-toggle=\"buttons\">\r\n        <label repeat.for=\"vi of viewInstances\" class=\"btn btn-primary ${vi === $parent.activeViewInstance ? 'active' : ''}\">\r\n            <input type=\"radio\" name=\"vi\" model.bind=\"vi\" checked.bind=\"$parent.activeViewInstance\"><i class=\"fa fa-plug\"></i>\r\n        </label>\r\n    </div>\r\n\r\n</template>\r\n"; });
+define('text!shell/view-instance-toolbar.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./view-instance-toolbar.css\"></require>\r\n\r\n    <div class=\"btn-group\" data-toggle=\"buttons\">\r\n        <label repeat.for=\"vi of viewInstances\" class=\"btn btn-primary ${vi === $parent.activeViewInstance ? 'active' : ''}\">\r\n            <input type=\"radio\" name=\"vi\" model.bind=\"vi\" checked.bind=\"$parent.activeViewInstance\">\r\n            <i class=\"fa fa-plug\"></i>\r\n            <span if.bind=\"$parent.showTitle\">${vi.title}</span>\r\n        </label>\r\n    </div>\r\n\r\n</template>\r\n"; });
 define('text!shell/state-repository-chooser.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  flex: 1 1;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
 define('text!shell/view-instance-toolbar.css', ['module'], function(module) { module.exports = ""; });
 define('text!views/three/three.html', ['module'], function(module) { module.exports = "<template>\r\n    <h1>three</h1>\r\n</template>"; });
 define('text!views/one/one.css', ['module'], function(module) { module.exports = ""; });
-define('text!views/one/one.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./one.css\"></require>\r\n    <h1>One (local)</h1>\r\n    <p class=\"wide\">${model.a}</p>\r\n    <select value.bind=\"targetPane\">\r\n        <option repeat.for=\"p of ['nav', 'main', 'alt']\" value.bind=\"p\">${p}</option>\r\n    </select>\r\n    <input type=\"text\" value.bind=\"targetMessage\" />\r\n    <button click.trigger=\"launchTarget()\">Launch</button>\r\n</template>"; });
+define('text!views/one/one.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./one.css\"></require>\r\n    <h1>One (local)</h1>\r\n    <p class=\"wide\">${model.a}</p>\r\n    <select value.bind=\"targetPane\">\r\n        <option repeat.for=\"p of ['nav', 'main', 'alt']\" value.bind=\"p\">${p}</option>\r\n    </select>\r\n    <input type=\"text\" value.bind=\"targetViewModel\" />\r\n    <input type=\"text\" value.bind=\"targetMessage\" />\r\n    <button click.trigger=\"launchTarget()\">Launch</button>\r\n</template>"; });
 define('text!views/two/two.html', ['module'], function(module) { module.exports = "<template>\r\n    <h1>two</h1>\r\n</template>"; });
+define('text!views/globe/globe.html', ['module'], function(module) { module.exports = "<template>\r\n    <h1>Globe</h1>\r\n</template>\r\n"; });
 //# sourceMappingURL=app-bundle.js.map

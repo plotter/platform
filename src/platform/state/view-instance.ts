@@ -5,6 +5,11 @@ export class ViewInstance {
     public static fromJSON(json: ViewInstanceJSON): ViewInstance {
         let viewInstance = new ViewInstance();
         viewInstance.uniqueId = json.uniqueId;
+        if (!json.title) {
+            viewInstance.title = json.uniqueId;
+        } else {
+            viewInstance.title = json.title;
+        }
         viewInstance.viewId = json.viewId;
         viewInstance.viewTemplate = json.viewTemplate;
         viewInstance.viewModel = json.viewModel;
@@ -14,6 +19,7 @@ export class ViewInstance {
     }
 
     public uniqueId: string;
+    public title: string;
     public viewId: string;
     public paneType: PaneType;
     public viewTemplate: string;
@@ -51,6 +57,7 @@ export class ViewInstance {
 
 export interface ViewInstanceJSON {
     uniqueId: string;
+    title: string;
     viewId: string;
     paneType: PaneType;
     viewTemplate: string;

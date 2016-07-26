@@ -7,6 +7,7 @@ export class One {
     public model;
     public targetPane: PaneType = 'main';
     public targetMessage: string = 'some message from you...';
+    public targetViewModel: string = '../views/one/one';
 
     constructor(private shell: Shell) { }
 
@@ -17,15 +18,15 @@ export class One {
     public launchTarget() {
         // alert(`Launch Target: ${this.targetPane} / ${this.targetMessage}...`)
         this.shell.launchViewInstanceJSON(
-            { 
-                "uniqueId": "vi-05", 
-                "viewId": "view3", 
-                "paneType": this.targetPane, 
-                "viewTemplate": null,
-                "viewModel": "../views/one/one", 
-                "viewState": { 
-                    "a": this.targetMessage
-                } 
+            {
+                'uniqueId': 'vi-05',
+                'viewId': 'view3',
+                'paneType': this.targetPane,
+                'viewTemplate': null,
+                'viewModel': this.targetViewModel,
+                'viewState': {
+                    'a': this.targetMessage,
+                },
             },
         );
     }
