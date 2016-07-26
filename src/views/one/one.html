@@ -1,5 +1,10 @@
 <template>
     <require from="./one.css"></require>
-    <h1>onex</h1>
+    <h1>One (local)</h1>
     <p class="wide">${model.a}</p>
+    <select value.bind="targetPane">
+        <option repeat.for="p of ['nav', 'main', 'alt']" value.bind="p">${p}</option>
+    </select>
+    <input type="text" value.bind="targetMessage" />
+    <button click.trigger="launchTarget()">Launch</button>
 </template>

@@ -18,7 +18,7 @@ export class ViewInstance {
     public paneType: PaneType;
     public viewTemplate: string;
     public viewModel: string;
-    public viewState: string;
+    public viewState: Object;
     public activePak: ActivePak;
     public view: View;
 
@@ -55,5 +55,5 @@ export interface ViewInstanceJSON {
     paneType: PaneType;
     viewTemplate: string;
     viewModel: string;
-    viewState: string;
+    viewState: Object;
 }

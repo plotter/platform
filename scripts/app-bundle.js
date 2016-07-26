@@ -606,99 +606,6 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-define('shell/shell',["require", "exports", 'aurelia-framework', '../platform/state/state-directory'], function (require, exports, aurelia_framework_1, state_directory_1) {
-    "use strict";
-    var Shell = (function () {
-        function Shell(stateDirectory) {
-            this.stateDirectory = stateDirectory;
-            this.navViewInstances = new Array();
-            this.mainViewInstances = new Array();
-            this.altViewInstances = new Array();
-        }
-        Shell.prototype.activate = function (params) {
-            var that = this;
-            this.hostId = params.hostId;
-            this.sessionId = params.sessionId;
-            this.stateDirectory.getStateSession(this.hostId, this.sessionId)
-                .then(function (session) {
-                that.session = session;
-                that.session.activePaks.forEach(function (activePak) {
-                    activePak.viewInstances.forEach(function (viewInstance) {
-                        switch (viewInstance.paneType) {
-                            case 'nav':
-                                that.navViewInstances.push(viewInstance);
-                                if (!that.navActiveViewInstance) {
-                                    that.navActiveViewInstance = viewInstance;
-                                }
-                                break;
-                            case 'main':
-                                that.mainViewInstances.push(viewInstance);
-                                if (!that.mainActiveViewInstance) {
-                                    that.mainActiveViewInstance = viewInstance;
-                                }
-                                break;
-                            case 'alt':
-                                that.altViewInstances.push(viewInstance);
-                                if (!that.altActiveViewInstance) {
-                                    that.altActiveViewInstance = viewInstance;
-                                }
-                                break;
-                            default:
-                                break;
-                        }
-                    });
-                });
-            });
-        };
-        Shell = __decorate([
-            aurelia_framework_1.inject(state_directory_1.StateDirectory), 
-            __metadata('design:paramtypes', [state_directory_1.StateDirectory])
-        ], Shell);
-        return Shell;
-    }());
-    exports.Shell = Shell;
-});
-
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
-define('shell/view-instance-toolbar',["require", "exports", 'aurelia-framework', '../platform/state/view-instance'], function (require, exports, aurelia_framework_1, view_instance_1) {
-    "use strict";
-    var ViewInstanceToolbar = (function () {
-        function ViewInstanceToolbar() {
-        }
-        __decorate([
-            aurelia_framework_1.bindable(), 
-            __metadata('design:type', view_instance_1.ViewInstance)
-        ], ViewInstanceToolbar.prototype, "activeViewInstance", void 0);
-        __decorate([
-            aurelia_framework_1.bindable(), 
-            __metadata('design:type', Array)
-        ], ViewInstanceToolbar.prototype, "viewInstances", void 0);
-        ViewInstanceToolbar = __decorate([
-            aurelia_framework_1.customElement('view-instance-toolbar'), 
-            __metadata('design:paramtypes', [])
-        ], ViewInstanceToolbar);
-        return ViewInstanceToolbar;
-    }());
-    exports.ViewInstanceToolbar = ViewInstanceToolbar;
-});
-
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
 define('state/new-session',["require", "exports", 'aurelia-framework', '../platform/state/state-directory'], function (require, exports, aurelia_framework_1, state_directory_1) {
     "use strict";
     var NewSession = (function () {
@@ -813,6 +720,123 @@ define('state/state-session-chooser',["require", "exports", 'aurelia-framework',
     exports.StateSessionChooser = StateSessionChooser;
 });
 
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+define('shell/shell',["require", "exports", 'aurelia-framework', '../platform/state/state-directory', '../platform/state/view-instance'], function (require, exports, aurelia_framework_1, state_directory_1, view_instance_1) {
+    "use strict";
+    var Shell = (function () {
+        function Shell(stateDirectory) {
+            var _this = this;
+            this.stateDirectory = stateDirectory;
+            this.navViewInstances = new Array();
+            this.mainViewInstances = new Array();
+            this.altViewInstances = new Array();
+            this.focusViewInstance = function (viewInstance) {
+                switch (viewInstance.paneType) {
+                    case 'nav':
+                        _this.navActiveViewInstance = viewInstance;
+                        break;
+                    case 'main':
+                        _this.mainActiveViewInstance = viewInstance;
+                        break;
+                    case 'alt':
+                        _this.altActiveViewInstance = viewInstance;
+                        break;
+                    default:
+                        break;
+                }
+            };
+            this.launchViewInstance = function (viewInstance) {
+                switch (viewInstance.paneType) {
+                    case 'nav':
+                        _this.navViewInstances.push(viewInstance);
+                        if (!_this.navActiveViewInstance) {
+                            _this.navActiveViewInstance = viewInstance;
+                        }
+                        break;
+                    case 'main':
+                        _this.mainViewInstances.push(viewInstance);
+                        if (!_this.mainActiveViewInstance) {
+                            _this.mainActiveViewInstance = viewInstance;
+                        }
+                        break;
+                    case 'alt':
+                        _this.altViewInstances.push(viewInstance);
+                        if (!_this.altActiveViewInstance) {
+                            _this.altActiveViewInstance = viewInstance;
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            };
+        }
+        Shell.prototype.launchViewInstanceJSON = function (viewInstanceJSON) {
+            var newViewInstance = view_instance_1.ViewInstance.fromJSON(viewInstanceJSON);
+            this.launchViewInstance(newViewInstance);
+            this.focusViewInstance(newViewInstance);
+        };
+        Shell.prototype.activate = function (params) {
+            var that = this;
+            this.hostId = params.hostId;
+            this.sessionId = params.sessionId;
+            this.stateDirectory.getStateSession(this.hostId, this.sessionId)
+                .then(function (session) {
+                that.session = session;
+                that.session.activePaks.forEach(function (activePak) {
+                    activePak.viewInstances.forEach(function (viewInstance) {
+                        that.launchViewInstance(viewInstance);
+                    });
+                });
+            });
+        };
+        Shell = __decorate([
+            aurelia_framework_1.inject(state_directory_1.StateDirectory), 
+            __metadata('design:paramtypes', [state_directory_1.StateDirectory])
+        ], Shell);
+        return Shell;
+    }());
+    exports.Shell = Shell;
+});
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+define('shell/view-instance-toolbar',["require", "exports", 'aurelia-framework', '../platform/state/view-instance'], function (require, exports, aurelia_framework_1, view_instance_1) {
+    "use strict";
+    var ViewInstanceToolbar = (function () {
+        function ViewInstanceToolbar() {
+        }
+        __decorate([
+            aurelia_framework_1.bindable(), 
+            __metadata('design:type', view_instance_1.ViewInstance)
+        ], ViewInstanceToolbar.prototype, "activeViewInstance", void 0);
+        __decorate([
+            aurelia_framework_1.bindable(), 
+            __metadata('design:type', Array)
+        ], ViewInstanceToolbar.prototype, "viewInstances", void 0);
+        ViewInstanceToolbar = __decorate([
+            aurelia_framework_1.customElement('view-instance-toolbar'), 
+            __metadata('design:paramtypes', [])
+        ], ViewInstanceToolbar);
+        return ViewInstanceToolbar;
+    }());
+    exports.ViewInstanceToolbar = ViewInstanceToolbar;
+});
+
 
 
 define("platform/pak/pak-provider-service", [],function(){});
@@ -841,14 +865,42 @@ define('platform/state/state-repository-service',["require", "exports"], functio
     exports.StateRepositoryService = StateRepositoryService;
 });
 
-define('views/one/one',["require", "exports"], function (require, exports) {
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+define('views/one/one',["require", "exports", 'aurelia-framework', '../../shell/shell'], function (require, exports, aurelia_framework_1, shell_1) {
     "use strict";
     var One = (function () {
-        function One() {
+        function One(shell) {
+            this.shell = shell;
+            this.targetPane = 'main';
+            this.targetMessage = 'some message from you...';
         }
         One.prototype.activate = function (model) {
             this.model = model;
         };
+        One.prototype.launchTarget = function () {
+            this.shell.launchViewInstanceJSON({
+                "uniqueId": "vi-05",
+                "viewId": "view3",
+                "paneType": this.targetPane,
+                "viewTemplate": null,
+                "viewModel": "../views/one/one",
+                "viewState": {
+                    "a": this.targetMessage
+                }
+            });
+        };
+        One = __decorate([
+            aurelia_framework_1.inject(shell_1.Shell), 
+            __metadata('design:paramtypes', [shell_1.Shell])
+        ], One);
         return One;
     }());
     exports.One = One;
@@ -930,20 +982,20 @@ define('../test/unit/platform/platform-startup.spec',["require", "exports", 'aur
 });
 
 define('text!app.html', ['module'], function(module) { module.exports = "<template>\n  <require from=\"app.css\"></require>\n  <router-view></router-view>\n</template>\n"; });
-define('text!shell/shell.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./shell.css\"></require>\r\n    <require from=\"./view-instance-toolbar\"></require>\r\n\r\n    <div class=\"header\">\r\n        <h1>Shell (${hostId} / ${sessionId}) </h1>\r\n    </div>\r\n\r\n    <div class=\"body\">\r\n        <div class=\"nav\" if.bind=\"navViewInstances.length\">\r\n            <div class=\"nav-body\">\r\n                <div class=\"nav-host\">\r\n                    <compose\r\n                        repeat.for=\"vi of navViewInstances\"\r\n                        view.bind=\"vi.viewTemplate\"\r\n                        view-model.bind=\"vi.viewModel\"\r\n                        model.bind=\"vi.viewState\"\r\n                        show.bind=\"vi === $parent.navActiveViewInstance\">\r\n                    </compose>\r\n                </div>\r\n            </div>\r\n            <div class=\"nav-toolbar\" if.bind=\"navViewInstances.length > 1\">\r\n                <view-instance-toolbar\r\n                    view-instances.bind=\"navViewInstances\"\r\n                    active-view-instance.two-way=\"navActiveViewInstance\">\r\n                </view-instance-toolbar>\r\n            </div>\r\n        </div>\r\n\r\n        <div class=\"body2\">\r\n\r\n            <div class=\"main\" if.bind=\"mainViewInstances.length\">\r\n                <div class=\"main-toolbar\" if.bind=\"mainViewInstances.length > 1\">\r\n                    <view-instance-toolbar\r\n                        view-instances.bind=\"mainViewInstances\"\r\n                        active-view-instance.two-way=\"mainActiveViewInstance\">\r\n                    </view-instance-toolbar>\r\n                </div>\r\n                <div class=\"main-body\">\r\n                    <div class=\"main-host\">\r\n                        <compose\r\n                            repeat.for=\"vi of mainViewInstances\"\r\n                            view.bind=\"vi.viewTemplate\"\r\n                            view-model.bind=\"vi.viewModel\"\r\n                            model.bind=\"vi.viewState\"\r\n                            show.bind=\"vi === $parent.mainActiveViewInstance\">\r\n                        </compose>\r\n                    </div>\r\n                </div>\r\n            </div>\r\n\r\n            <div class=\"alt\" if.bind=\"altViewInstances.length\">\r\n                <div class=\"alt-toolbar\" if.bind=\"altViewInstances.length > 1\">\r\n                    <view-instance-toolbar\r\n                        view-instances.bind=\"altViewInstances\"\r\n                        active-view-instance.two-way=\"altActiveViewInstance\">\r\n                    </view-instance-toolbar>\r\n                </div>\r\n                <div class=\"alt-body\">\r\n                    <div class=\"alt-host\">\r\n                        <compose\r\n                            repeat.for=\"vi of altViewInstances\"\r\n                            view.bind=\"vi.viewTemplate\"\r\n                            view-model.bind=\"vi.viewModel\"\r\n                            model.bind=\"vi.viewState\"\r\n                            show.bind=\"vi === $parent.altActiveViewInstance\">\r\n                        </compose>\r\n                    </div>\r\n                </div>\r\n            </div>\r\n\r\n        </div>\r\n    </div>\r\n</template>"; });
-define('text!app.css', ['module'], function(module) { module.exports = "router-view {\n  flex: 1 0;\n  display: flex;\n  flex-direction: column;\n}\n"; });
-define('text!shell/view-instance-toolbar.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./view-instance-toolbar.css\"></require>\r\n\r\n    <div class=\"btn-group\" data-toggle=\"buttons\">\r\n        <label repeat.for=\"vi of viewInstances\" class=\"btn btn-primary ${vi === $parent.activeViewInstance ? 'active' : ''}\">\r\n            <input type=\"radio\" name=\"vi\" model.bind=\"vi\" checked.bind=\"$parent.activeViewInstance\"><i class=\"fa fa-plug\"></i>\r\n        </label>\r\n    </div>\r\n\r\n</template>\r\n"; });
-define('text!shell/shell.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n}\n.body {\n  display: flex;\n  flex-direction: row;\n  flex: 1 0;\n}\n.nav {\n  display: flex;\n  flex-direction: column;\n  background-color: lightseagreen;\n  width: 200px;\n}\n.nav-body {\n  margin: 0;\n  padding: 0;\n  flex: 1 0;\n  position: relative;\n  overflow: hidden;\n}\n.nav-toolbar {\n  background-color: cadetblue;\n}\n.nav-host {\n  position: absolute;\n  top: 0;\n  left: 0;\n  bottom: 0;\n  right: 0;\n  margin: 0;\n  padding: 0;\n  overflow: auto;\n}\n.body2 {\n  display: flex;\n  flex-direction: column;\n  flex: 1 0;\n}\n.main {\n  display: flex;\n  flex-direction: column;\n  flex: 2 0;\n  background-color: aquamarine;\n}\n.main-toolbar {\n  background-color: cadetblue;\n}\n.main-body {\n  position: relative;\n  overflow: hidden;\n  margin: 0;\n  padding: 0;\n  flex: 1 0;\n}\n.main-host {\n  position: absolute;\n  top: 0;\n  left: 0;\n  bottom: 0;\n  right: 0;\n  overflow: auto;\n}\n.alt {\n  display: flex;\n  flex-direction: column;\n  flex: 1 0;\n  background-color: darkcyan;\n}\n.alt-toolbar {\n  background-color: cadetblue;\n}\n.alt-body {\n  position: relative;\n  overflow: hidden;\n  margin: 0;\n  padding: 0;\n  flex: 1 0;\n}\n.alt-host {\n  position: absolute;\n  top: 0;\n  left: 0;\n  bottom: 0;\n  right: 0;\n  overflow: auto;\n}\n"; });
 define('text!state/new-session.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./new-session.css\"></require>\r\n    <div class=\"header\">\r\n        <h1>New Session on ${hostId}</h1>\r\n    </div>\r\n    <div class=\"body\">\r\n        <div repeat.for=\"pakRepo of pakDirectory.pakRepositories\">\r\n            <h3>${pakRepo.uniqueId}</h3>\r\n            <p repeat.for=\"pakId of pakRepo.pakList\">&nbsp;&nbsp;&nbsp;&nbsp;<label><input type=\"checkbox\" value.bind=\"pakId\"> ${pakId}</label></p>\r\n        </div>\r\n    </div>\r\n</template>"; });
-define('text!shell/state-repository-chooser.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  flex: 1 1;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
-define('text!shell/view-instance-toolbar.css', ['module'], function(module) { module.exports = ""; });
+define('text!app.css', ['module'], function(module) { module.exports = "router-view {\n  flex: 1 0;\n  display: flex;\n  flex-direction: column;\n}\n"; });
 define('text!state/state-repository-chooser.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./state-repository-chooser.css\"></require>\r\n    <div class=\"header\">\r\n        <h1>Plotter Host</h1>\r\n        <h3>Choose Plotter Host:</h3>\r\n        <div class=\"input-group input-group-lg\">\r\n            <select class=\"form-control\" value.bind=\"state\">\r\n                <option model.bind=\"ss\" repeat.for=\"ss of states\">${ss.uniqueId}</option>\r\n            </select>\r\n            <span class=\"input-group-addon\" click.trigger=\"choose()\">\r\n                <i class=\"fa fa-arrow-circle-right fa-lg\"></i>\r\n            </span>\r\n        </div>\r\n    </div>\r\n    <div class=\"body\"></div>\r\n</template>"; });
-define('text!state/state-session-chooser.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./state-repository-chooser.css\"></require>\r\n    <div class=\"header\">\r\n        <h1>Session Chooser (${stateRepoUniqueId}) </h1>\r\n        <p>${message} </p>\r\n        <h3>Choose Session:</h3>\r\n        <div class=\"input-group input-group-lg\">\r\n            <select class=\"form-control\" value.bind=\"sessionId\">\r\n                <option value.bind=\"''\">(New Session)</option>\r\n                <option value.bind=\"s\" repeat.for=\"s of sessionList\">${s}</option>\r\n            </select>\r\n            <span class=\"input-group-addon\" click.trigger=\"choose()\">\r\n                <i class=\"fa fa-arrow-circle-right fa-lg\"></i>\r\n            </span>\r\n        </div>\r\n\r\n    </div>\r\n    <div class=\"body\"></div>\r\n</template>\r\n"; });
 define('text!state/new-session.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  flex: 1 1;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
 define('text!state/state-repository-chooser.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  flex: 1 1;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
-define('text!views/one/one.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./one.css\"></require>\r\n    <h1>onex</h1>\r\n    <p class=\"wide\">${model.a}</p>\r\n</template>"; });
+define('text!state/state-session-chooser.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./state-repository-chooser.css\"></require>\r\n    <div class=\"header\">\r\n        <h1>Session Chooser (${stateRepoUniqueId}) </h1>\r\n        <p>${message} </p>\r\n        <h3>Choose Session:</h3>\r\n        <div class=\"input-group input-group-lg\">\r\n            <select class=\"form-control\" value.bind=\"sessionId\">\r\n                <option value.bind=\"''\">(New Session)</option>\r\n                <option value.bind=\"s\" repeat.for=\"s of sessionList\">${s}</option>\r\n            </select>\r\n            <span class=\"input-group-addon\" click.trigger=\"choose()\">\r\n                <i class=\"fa fa-arrow-circle-right fa-lg\"></i>\r\n            </span>\r\n        </div>\r\n\r\n    </div>\r\n    <div class=\"body\"></div>\r\n</template>\r\n"; });
 define('text!state/state-session-chooser.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  flex: 1 1;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
-define('text!views/one/one.css', ['module'], function(module) { module.exports = ""; });
+define('text!shell/shell.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./shell.css\"></require>\r\n    <require from=\"./view-instance-toolbar\"></require>\r\n\r\n    <div class=\"header\">\r\n        <h1>Shell (${hostId} / ${sessionId}) </h1>\r\n    </div>\r\n\r\n    <div class=\"body\">\r\n        <div class=\"nav\" if.bind=\"navViewInstances.length\">\r\n            <div class=\"nav-body\">\r\n                <div class=\"nav-host\">\r\n                    <compose\r\n                        repeat.for=\"vi of navViewInstances\"\r\n                        view.bind=\"vi.viewTemplate\"\r\n                        view-model.bind=\"vi.viewModel\"\r\n                        model.bind=\"vi.viewState\"\r\n                        show.bind=\"vi === $parent.navActiveViewInstance\">\r\n                    </compose>\r\n                </div>\r\n            </div>\r\n            <div class=\"nav-toolbar\" if.bind=\"navViewInstances.length > 1\">\r\n                <view-instance-toolbar\r\n                    view-instances.bind=\"navViewInstances\"\r\n                    active-view-instance.two-way=\"navActiveViewInstance\">\r\n                </view-instance-toolbar>\r\n            </div>\r\n        </div>\r\n\r\n        <div class=\"body2\">\r\n\r\n            <div class=\"main\" if.bind=\"mainViewInstances.length\">\r\n                <div class=\"main-toolbar\" if.bind=\"mainViewInstances.length > 1\">\r\n                    <view-instance-toolbar\r\n                        view-instances.bind=\"mainViewInstances\"\r\n                        active-view-instance.two-way=\"mainActiveViewInstance\">\r\n                    </view-instance-toolbar>\r\n                </div>\r\n                <div class=\"main-body\">\r\n                    <div class=\"main-host\">\r\n                        <compose\r\n                            repeat.for=\"vi of mainViewInstances\"\r\n                            view.bind=\"vi.viewTemplate\"\r\n                            view-model.bind=\"vi.viewModel\"\r\n                            model.bind=\"vi.viewState\"\r\n                            show.bind=\"vi === $parent.mainActiveViewInstance\">\r\n                        </compose>\r\n                    </div>\r\n                </div>\r\n            </div>\r\n\r\n            <div class=\"alt\" if.bind=\"altViewInstances.length\">\r\n                <div class=\"alt-toolbar\" if.bind=\"altViewInstances.length > 1\">\r\n                    <view-instance-toolbar\r\n                        view-instances.bind=\"altViewInstances\"\r\n                        active-view-instance.two-way=\"altActiveViewInstance\">\r\n                    </view-instance-toolbar>\r\n                </div>\r\n                <div class=\"alt-body\">\r\n                    <div class=\"alt-host\">\r\n                        <compose\r\n                            repeat.for=\"vi of altViewInstances\"\r\n                            view.bind=\"vi.viewTemplate\"\r\n                            view-model.bind=\"vi.viewModel\"\r\n                            model.bind=\"vi.viewState\"\r\n                            show.bind=\"vi === $parent.altActiveViewInstance\">\r\n                        </compose>\r\n                    </div>\r\n                </div>\r\n            </div>\r\n\r\n        </div>\r\n    </div>\r\n</template>"; });
+define('text!shell/shell.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n}\n.body {\n  display: flex;\n  flex-direction: row;\n  flex: 1 0;\n}\n.nav {\n  display: flex;\n  flex-direction: column;\n  background-color: lightseagreen;\n  width: 200px;\n}\n.nav-body {\n  margin: 0;\n  padding: 0;\n  flex: 1 0;\n  position: relative;\n  overflow: hidden;\n}\n.nav-toolbar {\n  background-color: cadetblue;\n}\n.nav-host {\n  position: absolute;\n  top: 0;\n  left: 0;\n  bottom: 0;\n  right: 0;\n  margin: 0;\n  padding: 0;\n  overflow: auto;\n}\n.body2 {\n  display: flex;\n  flex-direction: column;\n  flex: 1 0;\n}\n.main {\n  display: flex;\n  flex-direction: column;\n  flex: 2 0;\n  background-color: aquamarine;\n}\n.main-toolbar {\n  background-color: cadetblue;\n}\n.main-body {\n  position: relative;\n  overflow: hidden;\n  margin: 0;\n  padding: 0;\n  flex: 1 0;\n}\n.main-host {\n  position: absolute;\n  top: 0;\n  left: 0;\n  bottom: 0;\n  right: 0;\n  overflow: auto;\n}\n.alt {\n  display: flex;\n  flex-direction: column;\n  flex: 1 0;\n  background-color: darkcyan;\n}\n.alt-toolbar {\n  background-color: cadetblue;\n}\n.alt-body {\n  position: relative;\n  overflow: hidden;\n  margin: 0;\n  padding: 0;\n  flex: 1 0;\n}\n.alt-host {\n  position: absolute;\n  top: 0;\n  left: 0;\n  bottom: 0;\n  right: 0;\n  overflow: auto;\n}\n"; });
+define('text!shell/view-instance-toolbar.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./view-instance-toolbar.css\"></require>\r\n\r\n    <div class=\"btn-group\" data-toggle=\"buttons\">\r\n        <label repeat.for=\"vi of viewInstances\" class=\"btn btn-primary ${vi === $parent.activeViewInstance ? 'active' : ''}\">\r\n            <input type=\"radio\" name=\"vi\" model.bind=\"vi\" checked.bind=\"$parent.activeViewInstance\"><i class=\"fa fa-plug\"></i>\r\n        </label>\r\n    </div>\r\n\r\n</template>\r\n"; });
+define('text!shell/state-repository-chooser.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  flex: 1 1;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
+define('text!shell/view-instance-toolbar.css', ['module'], function(module) { module.exports = ""; });
 define('text!views/three/three.html', ['module'], function(module) { module.exports = "<template>\r\n    <h1>three</h1>\r\n</template>"; });
+define('text!views/one/one.css', ['module'], function(module) { module.exports = ""; });
+define('text!views/one/one.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./one.css\"></require>\r\n    <h1>One (local)</h1>\r\n    <p class=\"wide\">${model.a}</p>\r\n    <select value.bind=\"targetPane\">\r\n        <option repeat.for=\"p of ['nav', 'main', 'alt']\" value.bind=\"p\">${p}</option>\r\n    </select>\r\n    <input type=\"text\" value.bind=\"targetMessage\" />\r\n    <button click.trigger=\"launchTarget()\">Launch</button>\r\n</template>"; });
 define('text!views/two/two.html', ['module'], function(module) { module.exports = "<template>\r\n    <h1>two</h1>\r\n</template>"; });
 //# sourceMappingURL=app-bundle.js.map

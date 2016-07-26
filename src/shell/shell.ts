@@ -1,7 +1,7 @@
 import { inject } from 'aurelia-framework';
 import { StateDirectory } from '../platform/state/state-directory';
 import { StateSession } from '../platform/state/state-session';
-import { ViewInstance } from '../platform/state/view-instance';
+import { ViewInstance, ViewInstanceJSON } from '../platform/state/view-instance';
 
 @inject(StateDirectory)
 export class Shell {
@@ -20,6 +20,12 @@ export class Shell {
 
     constructor(private stateDirectory: StateDirectory) { }
 
+    public launchViewInstanceJSON(viewInstanceJSON: ViewInstanceJSON) {
+        let newViewInstance = ViewInstance.fromJSON(viewInstanceJSON);
+        this.launchViewInstance(newViewInstance);
+        this.focusViewInstance(newViewInstance);
+    }
+
     public activate(params) {
         let that = this;
 
@@ -32,33 +38,56 @@ export class Shell {
 
                 that.session.activePaks.forEach(activePak => {
                     activePak.viewInstances.forEach(viewInstance => {
-                        switch (viewInstance.paneType) {
-                            case 'nav':
-                            that.navViewInstances.push(viewInstance);
-                            if (!that.navActiveViewInstance) {
-                                that.navActiveViewInstance = viewInstance;
-                            }
-                            break;
-
-                            case 'main':
-                            that.mainViewInstances.push(viewInstance);
-                            if (!that.mainActiveViewInstance) {
-                                that.mainActiveViewInstance = viewInstance;
-                            }
-                            break;
-
-                            case 'alt':
-                            that.altViewInstances.push(viewInstance);
-                            if (!that.altActiveViewInstance) {
-                                that.altActiveViewInstance = viewInstance;
-                            }
-                            break;
-
-                            default:
-                            break;
-                        }
+                        that.launchViewInstance(viewInstance);
                     });
                 });
             });
+    }
+
+    focusViewInstance = (viewInstance: ViewInstance) => {
+        switch (viewInstance.paneType) {
+            case 'nav':
+                this.navActiveViewInstance = viewInstance;
+                break;
+
+            case 'main':
+                this.mainActiveViewInstance = viewInstance;
+                break;
+
+            case 'alt':
+                this.altActiveViewInstance = viewInstance;
+                break;
+
+            default:
+                break;
+        }
+    }
+
+    launchViewInstance = (viewInstance: ViewInstance) => {
+        switch (viewInstance.paneType) {
+            case 'nav':
+                this.navViewInstances.push(viewInstance);
+                if (!this.navActiveViewInstance) {
+                    this.navActiveViewInstance = viewInstance;
+                }
+                break;
+
+            case 'main':
+                this.mainViewInstances.push(viewInstance);
+                if (!this.mainActiveViewInstance) {
+                    this.mainActiveViewInstance = viewInstance;
+                }
+                break;
+
+            case 'alt':
+                this.altViewInstances.push(viewInstance);
+                if (!this.altActiveViewInstance) {
+                    this.altActiveViewInstance = viewInstance;
+                }
+                break;
+
+            default:
+                break;
+        }
     }
 }
