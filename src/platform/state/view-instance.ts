@@ -57,10 +57,10 @@ export class ViewInstance {
 
 export interface ViewInstanceJSON {
     uniqueId: string;
-    title: string;
-    viewId: string;
+    title?: string;
+    viewId?: string;
     paneType: PaneType;
-    viewTemplate: string;
-    viewModel: string;
-    viewState: Object;
+    viewTemplate?: string;
+    viewModel?: string;
+    viewState?: Object;
 }
