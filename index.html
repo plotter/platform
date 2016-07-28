@@ -9,6 +9,12 @@
 </head>
 
 <script>
+    
+    window.nodeReq = window.require;
+    delete window.require;
+    delete window.exports;
+    delete window.module;
+
     function getParameterByName(name, url) {
       if (!url) url = window.location.href;
       name = name.replace(/[\[\]]/g, "\\$&");

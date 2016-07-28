@@ -2,6 +2,7 @@ import { HttpClient } from 'aurelia-fetch-client';
 import { PakRepository, PakRepositoryJSON } from './pak-repository';
 import { PakRepositoryFile } from './pak-repository-file';
 import { StateRepository } from '../state/state-repository';
+import { ElectronHelper } from '../electron-helper';
 
 export class PakDirectory {
     public static fromJSON(json: PakDirectoryJSON): PakDirectory {
@@ -13,7 +14,7 @@ export class PakDirectory {
             switch (pakRepositoryJSON.pakRepositoryType) {
                 case 'File':
                     {
-                        let pakRepository = new PakRepositoryFile(new HttpClient());
+                        let pakRepository = new PakRepositoryFile(new HttpClient(), new ElectronHelper());
                         pakRepository.locked = pakRepositoryJSON.locked;
                         pakRepository.uniqueId = pakRepositoryJSON.uniqueId;
                         pakRepository.pakRepositoryType = pakRepositoryJSON.pakRepositoryType;

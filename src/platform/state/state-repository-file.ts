@@ -4,11 +4,12 @@ import { StateRepository, StateRepositoryType, StateRepositoryJSON } from './sta
 import { PakDirectory } from '../pak/pak-directory';
 import { StateSession } from './state-session';
 import { StateDirectory } from './state-directory';
+import { ElectronHelper } from '../electron-helper';
 
-@inject(HttpClient)
+@inject(HttpClient, ElectronHelper)
 export class StateRepositoryFile implements StateRepository {
     public static fromJSON(json: StateRepositoryJSON): StateRepositoryFile {
-        let stateRepository = new StateRepositoryFile(new HttpClient());
+        let stateRepository = new StateRepositoryFile(new HttpClient(), new ElectronHelper());
         // assign properties...
         stateRepository.locked = json.locked;
         stateRepository.uniqueId = json.uniqueId;
@@ -27,7 +28,7 @@ export class StateRepositoryFile implements StateRepository {
     private stateSessionPromiseMap = new Map<string, Promise<StateSession>>();
     private stateSessionMap = new Map<string, StateSession>();
 
-    constructor(private httpClient: HttpClient) {}
+    constructor(private httpClient: HttpClient, private electronHelper: ElectronHelper) { }
 
     public getPakDirectory = () => {
 
@@ -37,19 +38,39 @@ export class StateRepositoryFile implements StateRepository {
 
         let that = this;
         return this.pakDirectoryPromise = new Promise<PakDirectory>((resolve, reject) => {
-            that.httpClient.fetch(`${that.path}/${that.uniqueId}/pak-directory.json`)
-                .then(response => {
-                    return response.json();
-                })
-                .then(data => {
+
+            if (that.electronHelper.isElectron) {
+                let fs = that.electronHelper.fs;
+                fs.readFile(`${that.path}/${that.uniqueId}/pak-directory.json`, (reason, stringData) => {
+                    if (reason) {
+                        reject(new Error(`fetch pak-directory failed: reason: \r\n\r\n${reason}`));
+                        return;
+                    }
+
+                    let data = JSON.parse(stringData);
+
                     let pakDirectory = PakDirectory.fromJSON(data);
                     pakDirectory.stateRepository = that;
                     resolve(pakDirectory);
-                })
-                .catch(reason => {
-                    reject(new Error(`fetch pak-directory failed: reason: \r\n\r\n${reason}`));
+                    return;
                 });
+            } else {
+
+                that.httpClient.fetch(`${that.path}/${that.uniqueId}/pak-directory.json`)
+                    .then(response => {
+                        return response.json();
+                    })
+                    .then(data => {
+                        let pakDirectory = PakDirectory.fromJSON(data);
+                        pakDirectory.stateRepository = that;
+                        resolve(pakDirectory);
+                    })
+                    .catch(reason => {
+                        reject(new Error(`fetch pak-directory failed: reason: \r\n\r\n${reason}`));
+                    });
+            }
         });
+
     }
 
     public getStateSession(sessionId: string): Promise<StateSession> {
@@ -60,19 +81,39 @@ export class StateRepositoryFile implements StateRepository {
 
         let that = this;
         let stateSessionPromise = new Promise<StateSession>((resolve, reject) => {
-            that.httpClient.fetch(`${that.path}/${that.uniqueId}/${sessionId}.json`)
-                .then(response => {
-                    return response.json();
-                })
-                .then(data => {
+
+            if (that.electronHelper.isElectron) {
+                let fs = that.electronHelper.fs;
+                fs.readFile(`${that.path}/${that.uniqueId}/${sessionId}.json`, (reason, stringData) => {
+                    if (reason) {
+                        reject(new Error(`fetch session list: reason: \r\n\r\n${reason}`));
+                        return;
+                    }
+
+                    let data = JSON.parse(stringData);
+
                     let stateSession = StateSession.fromJSON(data);
                     stateSession.stateRepository = that;
                     that.stateSessionMap.set(sessionId, stateSession);
                     resolve(stateSession);
-                })
-                .catch(reason => {
-                    reject(new Error(`fetch session list: reason: \r\n\r\n${reason}`));
+                    return;
                 });
+            } else {
+
+                that.httpClient.fetch(`${that.path}/${that.uniqueId}/${sessionId}.json`)
+                    .then(response => {
+                        return response.json();
+                    })
+                    .then(data => {
+                        let stateSession = StateSession.fromJSON(data);
+                        stateSession.stateRepository = that;
+                        that.stateSessionMap.set(sessionId, stateSession);
+                        resolve(stateSession);
+                    })
+                    .catch(reason => {
+                        reject(new Error(`fetch session list: reason: \r\n\r\n${reason}`));
+                    });
+            }
         });
 
         this.stateSessionPromiseMap.set(sessionId, stateSessionPromise);
@@ -81,17 +122,36 @@ export class StateRepositoryFile implements StateRepository {
     public getSessionList() {
         let that = this;
 
+        alert(`path: ${this.path}`);
+
         return new Promise<string[]>((resolve, reject) => {
-            that.httpClient.fetch(`${that.path}/${that.uniqueId}/session-list.json`)
-                .then(response => {
-                    return response.json();
-                })
-                .then(data => {
+
+            if (that.electronHelper.isElectron) {
+                let fs = that.electronHelper.fs;
+                fs.readFile(`${that.path}/${that.uniqueId}/session-list.json`, (reason, stringData) => {
+                    if (reason) {
+                        reject(new Error(`fetch session list: reason: \r\n\r\n${reason}`));
+                        return;
+                    }
+
+                    let data = JSON.parse(stringData);
+
                     resolve(<string[]> data.sessionList);
-                })
-                .catch(reason => {
-                    reject(new Error(`fetch session list: reason: \r\n\r\n${reason}`));
+                    return;
                 });
+            } else {
+
+                that.httpClient.fetch(`${that.path}/${that.uniqueId}/session-list.json`)
+                    .then(response => {
+                        return response.json();
+                    })
+                    .then(data => {
+                        resolve(<string[]> data.sessionList);
+                    })
+                    .catch(reason => {
+                        reject(new Error(`fetch session list: reason: \r\n\r\n${reason}`));
+                    });
+            }
         });
     }
     public toJSON(): StateRepositoryJSON {

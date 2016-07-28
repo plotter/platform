@@ -48,12 +48,22 @@ define('platform/pak/pak-repository',["require", "exports"], function (require, 
     "use strict";
 });
 
-define('platform/pak/pak-repository-file',["require", "exports", './pak'], function (require, exports, pak_1) {
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+define('platform/pak/pak-repository-file',["require", "exports", 'aurelia-framework', 'aurelia-fetch-client', './pak', '../electron-helper'], function (require, exports, aurelia_framework_1, aurelia_fetch_client_1, pak_1, electron_helper_1) {
     "use strict";
     var PakRepositoryFile = (function () {
-        function PakRepositoryFile(httpClient) {
+        function PakRepositoryFile(httpClient, electronHelper) {
             var _this = this;
             this.httpClient = httpClient;
+            this.electronHelper = electronHelper;
             this.locked = false;
             this.uniqueId = 'state-provider';
             this.pakRepositoryType = 'File';
@@ -65,19 +75,36 @@ define('platform/pak/pak-repository-file',["require", "exports", './pak'], funct
                 }
                 var that = _this;
                 var pakPromise = new Promise(function (resolve, reject) {
-                    that.httpClient.fetch(that.path + "/" + that.uniqueId + "/" + pakId + ".json")
-                        .then(function (response) {
-                        return response.json();
-                    })
-                        .then(function (data) {
-                        var pak = pak_1.Pak.fromJSON(data);
-                        pak.pakRepository = that;
-                        that.pakMap.set(pakId, pak);
-                        resolve(pak);
-                    })
-                        .catch(function (reason) {
-                        reject(new Error("fetch session list: reason: \r\n\r\n" + reason));
-                    });
+                    if (that.electronHelper.isElectron) {
+                        var fs = that.electronHelper.fs;
+                        fs.readFile(that.path + "/" + that.uniqueId + "/" + pakId + ".json", function (reason, stringData) {
+                            if (reason) {
+                                reject(new Error("fetch pak failed: reason: \r\n\r\n" + reason));
+                                return;
+                            }
+                            var data = JSON.parse(stringData);
+                            var pak = pak_1.Pak.fromJSON(data);
+                            pak.pakRepository = that;
+                            that.pakMap.set(pakId, pak);
+                            resolve(pak);
+                            return;
+                        });
+                    }
+                    else {
+                        that.httpClient.fetch(that.path + "/" + that.uniqueId + "/" + pakId + ".json")
+                            .then(function (response) {
+                            return response.json();
+                        })
+                            .then(function (data) {
+                            var pak = pak_1.Pak.fromJSON(data);
+                            pak.pakRepository = that;
+                            that.pakMap.set(pakId, pak);
+                            resolve(pak);
+                        })
+                            .catch(function (reason) {
+                            reject(new Error("fetch pak failed: reason: \r\n\r\n" + reason));
+                        });
+                    }
                 });
                 _this.pakPromiseMap.set(pakId, pakPromise);
                 return pakPromise;
@@ -85,26 +112,45 @@ define('platform/pak/pak-repository-file',["require", "exports", './pak'], funct
             this.getPakList = function () {
                 var that = _this;
                 return new Promise(function (resolve, reject) {
-                    that.httpClient.fetch(that.path + "/" + that.uniqueId + "/pak-list.json")
-                        .then(function (response) {
-                        return response.json();
-                    })
-                        .then(function (data) {
-                        that.pakList = data.pakList;
-                        resolve(data.pakList);
-                    })
-                        .catch(function (reason) {
-                        reject(new Error("fetch pak list failed: reason: \r\n\r\n" + reason));
-                    });
+                    if (that.electronHelper.isElectron) {
+                        var fs = that.electronHelper.fs;
+                        fs.readFile(that.path + "/" + that.uniqueId + "/pak-list.json", function (reason, stringData) {
+                            if (reason) {
+                                reject(new Error("fetch pak list failed: reason: \r\n\r\n" + reason));
+                                return;
+                            }
+                            var data = JSON.parse(stringData);
+                            that.pakList = data.pakList;
+                            resolve(data.pakList);
+                            return;
+                        });
+                    }
+                    else {
+                        that.httpClient.fetch(that.path + "/" + that.uniqueId + "/pak-list.json")
+                            .then(function (response) {
+                            return response.json();
+                        })
+                            .then(function (data) {
+                            that.pakList = data.pakList;
+                            resolve(data.pakList);
+                        })
+                            .catch(function (reason) {
+                            reject(new Error("fetch pak list failed: reason: \r\n\r\n" + reason));
+                        });
+                    }
                 });
             };
         }
+        PakRepositoryFile = __decorate([
+            aurelia_framework_1.inject(aurelia_fetch_client_1.HttpClient, electron_helper_1.ElectronHelper), 
+            __metadata('design:paramtypes', [aurelia_fetch_client_1.HttpClient, electron_helper_1.ElectronHelper])
+        ], PakRepositoryFile);
         return PakRepositoryFile;
     }());
     exports.PakRepositoryFile = PakRepositoryFile;
 });
 
-define('platform/pak/pak-directory',["require", "exports", 'aurelia-fetch-client', './pak-repository-file'], function (require, exports, aurelia_fetch_client_1, pak_repository_file_1) {
+define('platform/pak/pak-directory',["require", "exports", 'aurelia-fetch-client', './pak-repository-file', '../electron-helper'], function (require, exports, aurelia_fetch_client_1, pak_repository_file_1, electron_helper_1) {
     "use strict";
     var PakDirectory = (function () {
         function PakDirectory() {
@@ -117,7 +163,7 @@ define('platform/pak/pak-directory',["require", "exports", 'aurelia-fetch-client
                 switch (pakRepositoryJSON.pakRepositoryType) {
                     case 'File':
                         {
-                            var pakRepository = new pak_repository_file_1.PakRepositoryFile(new aurelia_fetch_client_1.HttpClient());
+                            var pakRepository = new pak_repository_file_1.PakRepositoryFile(new aurelia_fetch_client_1.HttpClient(), new electron_helper_1.ElectronHelper());
                             pakRepository.locked = pakRepositoryJSON.locked;
                             pakRepository.uniqueId = pakRepositoryJSON.uniqueId;
                             pakRepository.pakRepositoryType = pakRepositoryJSON.pakRepositoryType;
@@ -267,12 +313,13 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-define('platform/state/state-repository-file',["require", "exports", 'aurelia-framework', 'aurelia-fetch-client', '../pak/pak-directory', './state-session'], function (require, exports, aurelia_framework_1, aurelia_fetch_client_1, pak_directory_1, state_session_1) {
+define('platform/state/state-repository-file',["require", "exports", 'aurelia-framework', 'aurelia-fetch-client', '../pak/pak-directory', './state-session', '../electron-helper'], function (require, exports, aurelia_framework_1, aurelia_fetch_client_1, pak_directory_1, state_session_1, electron_helper_1) {
     "use strict";
     var StateRepositoryFile = (function () {
-        function StateRepositoryFile(httpClient) {
+        function StateRepositoryFile(httpClient, electronHelper) {
             var _this = this;
             this.httpClient = httpClient;
+            this.electronHelper = electronHelper;
             this.locked = false;
             this.uniqueId = 'state-repository';
             this.stateRepositoryType = 'File';
@@ -284,23 +331,39 @@ define('platform/state/state-repository-file',["require", "exports", 'aurelia-fr
                 }
                 var that = _this;
                 return _this.pakDirectoryPromise = new Promise(function (resolve, reject) {
-                    that.httpClient.fetch(that.path + "/" + that.uniqueId + "/pak-directory.json")
-                        .then(function (response) {
-                        return response.json();
-                    })
-                        .then(function (data) {
-                        var pakDirectory = pak_directory_1.PakDirectory.fromJSON(data);
-                        pakDirectory.stateRepository = that;
-                        resolve(pakDirectory);
-                    })
-                        .catch(function (reason) {
-                        reject(new Error("fetch pak-directory failed: reason: \r\n\r\n" + reason));
-                    });
+                    if (that.electronHelper.isElectron) {
+                        var fs = that.electronHelper.fs;
+                        fs.readFile(that.path + "/" + that.uniqueId + "/pak-directory.json", function (reason, stringData) {
+                            if (reason) {
+                                reject(new Error("fetch pak-directory failed: reason: \r\n\r\n" + reason));
+                                return;
+                            }
+                            var data = JSON.parse(stringData);
+                            var pakDirectory = pak_directory_1.PakDirectory.fromJSON(data);
+                            pakDirectory.stateRepository = that;
+                            resolve(pakDirectory);
+                            return;
+                        });
+                    }
+                    else {
+                        that.httpClient.fetch(that.path + "/" + that.uniqueId + "/pak-directory.json")
+                            .then(function (response) {
+                            return response.json();
+                        })
+                            .then(function (data) {
+                            var pakDirectory = pak_directory_1.PakDirectory.fromJSON(data);
+                            pakDirectory.stateRepository = that;
+                            resolve(pakDirectory);
+                        })
+                            .catch(function (reason) {
+                            reject(new Error("fetch pak-directory failed: reason: \r\n\r\n" + reason));
+                        });
+                    }
                 });
             };
         }
         StateRepositoryFile.fromJSON = function (json) {
-            var stateRepository = new StateRepositoryFile(new aurelia_fetch_client_1.HttpClient());
+            var stateRepository = new StateRepositoryFile(new aurelia_fetch_client_1.HttpClient(), new electron_helper_1.ElectronHelper());
             stateRepository.locked = json.locked;
             stateRepository.uniqueId = json.uniqueId;
             stateRepository.stateRepositoryType = json.stateRepositoryType;
@@ -313,36 +376,68 @@ define('platform/state/state-repository-file',["require", "exports", 'aurelia-fr
             }
             var that = this;
             var stateSessionPromise = new Promise(function (resolve, reject) {
-                that.httpClient.fetch(that.path + "/" + that.uniqueId + "/" + sessionId + ".json")
-                    .then(function (response) {
-                    return response.json();
-                })
-                    .then(function (data) {
-                    var stateSession = state_session_1.StateSession.fromJSON(data);
-                    stateSession.stateRepository = that;
-                    that.stateSessionMap.set(sessionId, stateSession);
-                    resolve(stateSession);
-                })
-                    .catch(function (reason) {
-                    reject(new Error("fetch session list: reason: \r\n\r\n" + reason));
-                });
+                if (that.electronHelper.isElectron) {
+                    var fs = that.electronHelper.fs;
+                    fs.readFile(that.path + "/" + that.uniqueId + "/" + sessionId + ".json", function (reason, stringData) {
+                        if (reason) {
+                            reject(new Error("fetch session list: reason: \r\n\r\n" + reason));
+                            return;
+                        }
+                        var data = JSON.parse(stringData);
+                        var stateSession = state_session_1.StateSession.fromJSON(data);
+                        stateSession.stateRepository = that;
+                        that.stateSessionMap.set(sessionId, stateSession);
+                        resolve(stateSession);
+                        return;
+                    });
+                }
+                else {
+                    that.httpClient.fetch(that.path + "/" + that.uniqueId + "/" + sessionId + ".json")
+                        .then(function (response) {
+                        return response.json();
+                    })
+                        .then(function (data) {
+                        var stateSession = state_session_1.StateSession.fromJSON(data);
+                        stateSession.stateRepository = that;
+                        that.stateSessionMap.set(sessionId, stateSession);
+                        resolve(stateSession);
+                    })
+                        .catch(function (reason) {
+                        reject(new Error("fetch session list: reason: \r\n\r\n" + reason));
+                    });
+                }
             });
             this.stateSessionPromiseMap.set(sessionId, stateSessionPromise);
             return stateSessionPromise;
         };
         StateRepositoryFile.prototype.getSessionList = function () {
             var that = this;
+            alert("path: " + this.path);
             return new Promise(function (resolve, reject) {
-                that.httpClient.fetch(that.path + "/" + that.uniqueId + "/session-list.json")
-                    .then(function (response) {
-                    return response.json();
-                })
-                    .then(function (data) {
-                    resolve(data.sessionList);
-                })
-                    .catch(function (reason) {
-                    reject(new Error("fetch session list: reason: \r\n\r\n" + reason));
-                });
+                if (that.electronHelper.isElectron) {
+                    var fs = that.electronHelper.fs;
+                    fs.readFile(that.path + "/" + that.uniqueId + "/session-list.json", function (reason, stringData) {
+                        if (reason) {
+                            reject(new Error("fetch session list: reason: \r\n\r\n" + reason));
+                            return;
+                        }
+                        var data = JSON.parse(stringData);
+                        resolve(data.sessionList);
+                        return;
+                    });
+                }
+                else {
+                    that.httpClient.fetch(that.path + "/" + that.uniqueId + "/session-list.json")
+                        .then(function (response) {
+                        return response.json();
+                    })
+                        .then(function (data) {
+                        resolve(data.sessionList);
+                    })
+                        .catch(function (reason) {
+                        reject(new Error("fetch session list: reason: \r\n\r\n" + reason));
+                    });
+                }
             });
         };
         StateRepositoryFile.prototype.toJSON = function () {
@@ -354,15 +449,15 @@ define('platform/state/state-repository-file',["require", "exports", 'aurelia-fr
             };
         };
         StateRepositoryFile = __decorate([
-            aurelia_framework_1.inject(aurelia_fetch_client_1.HttpClient), 
-            __metadata('design:paramtypes', [aurelia_fetch_client_1.HttpClient])
+            aurelia_framework_1.inject(aurelia_fetch_client_1.HttpClient, electron_helper_1.ElectronHelper), 
+            __metadata('design:paramtypes', [aurelia_fetch_client_1.HttpClient, electron_helper_1.ElectronHelper])
         ], StateRepositoryFile);
         return StateRepositoryFile;
     }());
     exports.StateRepositoryFile = StateRepositoryFile;
 });
 
-define('platform/state/state-directory',["require", "exports", 'aurelia-fetch-client', './state-repository-file'], function (require, exports, aurelia_fetch_client_1, state_repository_file_1) {
+define('platform/state/state-directory',["require", "exports", 'aurelia-fetch-client', './state-repository-file', '../electron-helper'], function (require, exports, aurelia_fetch_client_1, state_repository_file_1, electron_helper_1) {
     "use strict";
     var StateDirectory = (function () {
         function StateDirectory() {
@@ -375,7 +470,7 @@ define('platform/state/state-directory',["require", "exports", 'aurelia-fetch-cl
                 switch (stateRepositoryJSON.stateRepositoryType) {
                     case 'File':
                         {
-                            var stateRepository = new state_repository_file_1.StateRepositoryFile(new aurelia_fetch_client_1.HttpClient());
+                            var stateRepository = new state_repository_file_1.StateRepositoryFile(new aurelia_fetch_client_1.HttpClient(), new electron_helper_1.ElectronHelper());
                             stateRepository.locked = stateRepositoryJSON.locked;
                             stateRepository.uniqueId = stateRepositoryJSON.uniqueId;
                             stateRepository.stateRepositoryType = stateRepositoryJSON.stateRepositoryType;
@@ -472,15 +567,15 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-define('platform/platform-startup',["require", "exports", 'aurelia-framework', 'aurelia-fetch-client', './state/state-directory', './plotter'], function (require, exports, aurelia_framework_1, aurelia_fetch_client_1, state_directory_1, plotter_1) {
+define('platform/platform-startup',["require", "exports", 'aurelia-framework', 'aurelia-fetch-client', './state/state-directory', './plotter', './electron-helper'], function (require, exports, aurelia_framework_1, aurelia_fetch_client_1, state_directory_1, plotter_1, electron_helper_1) {
     "use strict";
     var PlatformStartup = (function () {
-        function PlatformStartup(httpClient, plotter) {
+        function PlatformStartup(httpClient, plotter, electronHelper) {
             this.httpClient = httpClient;
             this.plotter = plotter;
+            this.electronHelper = electronHelper;
         }
         PlatformStartup.prototype.start = function () {
-            var _this = this;
             var that = this;
             return new Promise(function (resolve, reject) {
                 var sdn = that.plotter.stateDirectoryName;
@@ -494,24 +589,40 @@ define('platform/platform-startup',["require", "exports", 'aurelia-framework', '
                     reject('localstorage not supported yet.');
                 }
                 else {
-                    that.httpClient.fetch(sdn + ".json")
-                        .then(function (response) {
-                        return response.json();
-                    })
-                        .then(function (data) {
-                        var stateDirectory = state_directory_1.StateDirectory.fromJSON(data);
-                        _this.plotter.stateDirectory = stateDirectory;
-                        resolve(stateDirectory);
-                    })
-                        .catch(function (reason) {
-                        reject(new Error("fetch state-dictionary2: reason: \r\n\r\n" + reason));
-                    });
+                    if (that.electronHelper.isElectron) {
+                        var fs = that.electronHelper.fs;
+                        fs.readFile(sdn + ".json", function (err, stringData) {
+                            if (err) {
+                                reject(err);
+                                return;
+                            }
+                            var data = JSON.parse(stringData);
+                            var stateDirectory = state_directory_1.StateDirectory.fromJSON(data);
+                            that.plotter.stateDirectory = stateDirectory;
+                            resolve(stateDirectory);
+                            return;
+                        });
+                    }
+                    else {
+                        that.httpClient.fetch(sdn + ".json")
+                            .then(function (response) {
+                            return response.json();
+                        })
+                            .then(function (data) {
+                            var stateDirectory = state_directory_1.StateDirectory.fromJSON(data);
+                            that.plotter.stateDirectory = stateDirectory;
+                            resolve(stateDirectory);
+                        })
+                            .catch(function (reason) {
+                            reject(new Error("fetch state-dictionary2: reason: \r\n\r\n" + reason));
+                        });
+                    }
                 }
             });
         };
         PlatformStartup = __decorate([
-            aurelia_framework_1.inject(aurelia_fetch_client_1.HttpClient, plotter_1.Plotter), 
-            __metadata('design:paramtypes', [aurelia_fetch_client_1.HttpClient, plotter_1.Plotter])
+            aurelia_framework_1.inject(aurelia_fetch_client_1.HttpClient, plotter_1.Plotter, electron_helper_1.ElectronHelper), 
+            __metadata('design:paramtypes', [aurelia_fetch_client_1.HttpClient, plotter_1.Plotter, electron_helper_1.ElectronHelper])
         ], PlatformStartup);
         return PlatformStartup;
     }());
@@ -601,129 +712,6 @@ define('resources/index',["require", "exports"], function (require, exports) {
     function configure(config) {
     }
     exports.configure = configure;
-});
-
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
-define('state/new-session',["require", "exports", 'aurelia-framework', '../platform/state/state-directory'], function (require, exports, aurelia_framework_1, state_directory_1) {
-    "use strict";
-    var NewSession = (function () {
-        function NewSession(stateDirectory) {
-            this.stateDirectory = stateDirectory;
-        }
-        NewSession.prototype.activate = function (params) {
-            var that = this;
-            this.hostId = params.hostId;
-            this.stateRepository = this.stateDirectory.getStateRepository(this.hostId);
-            this.stateRepository.getPakDirectory()
-                .then(function (pakDirectory) {
-                that.pakDirectory = pakDirectory;
-                that.pakDirectory.pakRepositories.forEach(function (pakRepo) {
-                    pakRepo.getPakList();
-                });
-            });
-        };
-        NewSession = __decorate([
-            aurelia_framework_1.inject(state_directory_1.StateDirectory), 
-            __metadata('design:paramtypes', [state_directory_1.StateDirectory])
-        ], NewSession);
-        return NewSession;
-    }());
-    exports.NewSession = NewSession;
-});
-
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
-define('state/state-repository-chooser',["require", "exports", 'aurelia-framework', 'aurelia-router', '../platform/state/state-directory', '../platform/plotter'], function (require, exports, aurelia_framework_1, aurelia_router_1, state_directory_1, plotter_1) {
-    "use strict";
-    var StateRepositoryChooser = (function () {
-        function StateRepositoryChooser(stateDirectory, router, plotter) {
-            var _this = this;
-            this.stateDirectory = stateDirectory;
-            this.router = router;
-            this.plotter = plotter;
-            this.choose = function () {
-                _this.plotter.stateRepository = _this.state;
-                _this.router.navigateToRoute('session', { hostId: _this.state.uniqueId });
-            };
-            this.states = stateDirectory.stateRepositories;
-        }
-        StateRepositoryChooser = __decorate([
-            aurelia_framework_1.inject(state_directory_1.StateDirectory, aurelia_router_1.Router, plotter_1.Plotter), 
-            __metadata('design:paramtypes', [state_directory_1.StateDirectory, aurelia_router_1.Router, plotter_1.Plotter])
-        ], StateRepositoryChooser);
-        return StateRepositoryChooser;
-    }());
-    exports.StateRepositoryChooser = StateRepositoryChooser;
-});
-
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
-define('state/state-session-chooser',["require", "exports", 'aurelia-framework', 'aurelia-router', '../platform/state/state-directory', '../platform/plotter'], function (require, exports, aurelia_framework_1, aurelia_router_1, state_directory_1, plotter_1) {
-    "use strict";
-    var StateSessionChooser = (function () {
-        function StateSessionChooser(stateDirectory, plotter, router) {
-            this.stateDirectory = stateDirectory;
-            this.plotter = plotter;
-            this.router = router;
-            this.message = 'no message.';
-            this.sessionList = [];
-        }
-        StateSessionChooser.prototype.activate = function (params) {
-            var that = this;
-            this.stateRepoUniqueId = params.hostId;
-            this.stateRepo = this.stateDirectory.getStateRepository(this.stateRepoUniqueId);
-            if (this.stateRepo) {
-                this.message = 'found repo';
-                this.stateRepo.getSessionList()
-                    .then(function (sessionList) {
-                    that.sessionList = sessionList;
-                });
-            }
-            else {
-                this.message = 'did not find repo';
-            }
-        };
-        StateSessionChooser.prototype.choose = function () {
-            var that = this;
-            if (!this.sessionId) {
-                this.router.navigateToRoute('newSession', { hostId: this.stateRepoUniqueId });
-                return;
-            }
-            this.stateDirectory.getStateSession(this.stateRepoUniqueId, this.sessionId)
-                .then(function (stateSession) {
-                that.plotter.stateSession = stateSession;
-                that.router.navigateToRoute('shell', { hostId: that.stateRepoUniqueId, sessionId: that.sessionId });
-            });
-        };
-        StateSessionChooser = __decorate([
-            aurelia_framework_1.inject(state_directory_1.StateDirectory, plotter_1.Plotter, aurelia_router_1.Router), 
-            __metadata('design:paramtypes', [state_directory_1.StateDirectory, plotter_1.Plotter, aurelia_router_1.Router])
-        ], StateSessionChooser);
-        return StateSessionChooser;
-    }());
-    exports.StateSessionChooser = StateSessionChooser;
 });
 
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
@@ -852,6 +840,129 @@ define('shell/view-instance-toolbar',["require", "exports", 'aurelia-framework',
         return ViewInstanceToolbar;
     }());
     exports.ViewInstanceToolbar = ViewInstanceToolbar;
+});
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+define('state/new-session',["require", "exports", 'aurelia-framework', '../platform/state/state-directory'], function (require, exports, aurelia_framework_1, state_directory_1) {
+    "use strict";
+    var NewSession = (function () {
+        function NewSession(stateDirectory) {
+            this.stateDirectory = stateDirectory;
+        }
+        NewSession.prototype.activate = function (params) {
+            var that = this;
+            this.hostId = params.hostId;
+            this.stateRepository = this.stateDirectory.getStateRepository(this.hostId);
+            this.stateRepository.getPakDirectory()
+                .then(function (pakDirectory) {
+                that.pakDirectory = pakDirectory;
+                that.pakDirectory.pakRepositories.forEach(function (pakRepo) {
+                    pakRepo.getPakList();
+                });
+            });
+        };
+        NewSession = __decorate([
+            aurelia_framework_1.inject(state_directory_1.StateDirectory), 
+            __metadata('design:paramtypes', [state_directory_1.StateDirectory])
+        ], NewSession);
+        return NewSession;
+    }());
+    exports.NewSession = NewSession;
+});
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+define('state/state-repository-chooser',["require", "exports", 'aurelia-framework', 'aurelia-router', '../platform/state/state-directory', '../platform/plotter'], function (require, exports, aurelia_framework_1, aurelia_router_1, state_directory_1, plotter_1) {
+    "use strict";
+    var StateRepositoryChooser = (function () {
+        function StateRepositoryChooser(stateDirectory, router, plotter) {
+            var _this = this;
+            this.stateDirectory = stateDirectory;
+            this.router = router;
+            this.plotter = plotter;
+            this.choose = function () {
+                _this.plotter.stateRepository = _this.state;
+                _this.router.navigateToRoute('session', { hostId: _this.state.uniqueId });
+            };
+            this.states = stateDirectory.stateRepositories;
+        }
+        StateRepositoryChooser = __decorate([
+            aurelia_framework_1.inject(state_directory_1.StateDirectory, aurelia_router_1.Router, plotter_1.Plotter), 
+            __metadata('design:paramtypes', [state_directory_1.StateDirectory, aurelia_router_1.Router, plotter_1.Plotter])
+        ], StateRepositoryChooser);
+        return StateRepositoryChooser;
+    }());
+    exports.StateRepositoryChooser = StateRepositoryChooser;
+});
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+define('state/state-session-chooser',["require", "exports", 'aurelia-framework', 'aurelia-router', '../platform/state/state-directory', '../platform/plotter'], function (require, exports, aurelia_framework_1, aurelia_router_1, state_directory_1, plotter_1) {
+    "use strict";
+    var StateSessionChooser = (function () {
+        function StateSessionChooser(stateDirectory, plotter, router) {
+            this.stateDirectory = stateDirectory;
+            this.plotter = plotter;
+            this.router = router;
+            this.message = 'no message.';
+            this.sessionList = [];
+        }
+        StateSessionChooser.prototype.activate = function (params) {
+            var that = this;
+            this.stateRepoUniqueId = params.hostId;
+            this.stateRepo = this.stateDirectory.getStateRepository(this.stateRepoUniqueId);
+            if (this.stateRepo) {
+                this.message = 'found repo';
+                this.stateRepo.getSessionList()
+                    .then(function (sessionList) {
+                    that.sessionList = sessionList;
+                });
+            }
+            else {
+                this.message = 'did not find repo';
+            }
+        };
+        StateSessionChooser.prototype.choose = function () {
+            var that = this;
+            if (!this.sessionId) {
+                this.router.navigateToRoute('newSession', { hostId: this.stateRepoUniqueId });
+                return;
+            }
+            this.stateDirectory.getStateSession(this.stateRepoUniqueId, this.sessionId)
+                .then(function (stateSession) {
+                that.plotter.stateSession = stateSession;
+                that.router.navigateToRoute('shell', { hostId: that.stateRepoUniqueId, sessionId: that.sessionId });
+            });
+        };
+        StateSessionChooser = __decorate([
+            aurelia_framework_1.inject(state_directory_1.StateDirectory, plotter_1.Plotter, aurelia_router_1.Router), 
+            __metadata('design:paramtypes', [state_directory_1.StateDirectory, plotter_1.Plotter, aurelia_router_1.Router])
+        ], StateSessionChooser);
+        return StateSessionChooser;
+    }());
+    exports.StateSessionChooser = StateSessionChooser;
 });
 
 
@@ -1009,6 +1120,31 @@ define('../test/unit/platform/platform-startup.spec',["require", "exports", 'aur
     });
 });
 
+define('platform/electron-helper',["require", "exports"], function (require, exports) {
+    "use strict";
+    var ElectronHelper = (function () {
+        function ElectronHelper() {
+        }
+        Object.defineProperty(ElectronHelper.prototype, "isElectron", {
+            get: function () {
+                return window.location && window.location.toString().startsWith('file:');
+            },
+            enumerable: true,
+            configurable: true
+        });
+        ;
+        Object.defineProperty(ElectronHelper.prototype, "fs", {
+            get: function () {
+                return window.nodeReq && window.nodeReq('fs');
+            },
+            enumerable: true,
+            configurable: true
+        });
+        return ElectronHelper;
+    }());
+    exports.ElectronHelper = ElectronHelper;
+});
+
 define('text!app.html', ['module'], function(module) { module.exports = "<template>\n  <require from=\"app.css\"></require>\n  <router-view></router-view>\n</template>\n"; });
 define('text!shell/shell.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./shell.css\"></require>\r\n    <require from=\"./view-instance-toolbar\"></require>\r\n\r\n    <div class=\"header\">\r\n        <h1>Shell (${hostId} / ${sessionId}) </h1>\r\n    </div>\r\n\r\n    <div class=\"body\">\r\n        <div class=\"nav\" if.bind=\"navViewInstances.length\">\r\n            <div class=\"nav-body\">\r\n                <div class=\"nav-host\">\r\n                    <compose\r\n                        repeat.for=\"vi of navViewInstances\"\r\n                        view.bind=\"vi.viewTemplate\"\r\n                        view-model.bind=\"vi.viewModel\"\r\n                        model.bind=\"vi.viewState\"\r\n                        show.bind=\"vi === $parent.navActiveViewInstance\">\r\n                    </compose>\r\n                </div>\r\n            </div>\r\n            <div class=\"nav-toolbar\" if.bind=\"navViewInstances.length > 1\">\r\n                <view-instance-toolbar\r\n                    view-instances.bind=\"navViewInstances\"\r\n                    active-view-instance.two-way=\"navActiveViewInstance\">\r\n                </view-instance-toolbar>\r\n            </div>\r\n        </div>\r\n\r\n        <div class=\"body2\">\r\n\r\n            <div class=\"main\" if.bind=\"mainViewInstances.length\">\r\n                <div class=\"main-toolbar\" if.bind=\"mainViewInstances.length > 1\">\r\n                    <view-instance-toolbar\r\n                        view-instances.bind=\"mainViewInstances\"\r\n                        active-view-instance.two-way=\"mainActiveViewInstance\"\r\n                        show-title=\"true\">\r\n                    </view-instance-toolbar>\r\n                </div>\r\n                <div class=\"main-body\">\r\n                    <div class=\"main-host\">\r\n                        <compose\r\n                            repeat.for=\"vi of mainViewInstances\"\r\n                            view.bind=\"vi.viewTemplate\"\r\n                            view-model.bind=\"vi.viewModel\"\r\n                            model.bind=\"vi.viewState\"\r\n                            show.bind=\"vi === $parent.mainActiveViewInstance\">\r\n                        </compose>\r\n                    </div>\r\n                </div>\r\n            </div>\r\n\r\n            <div class=\"alt\" if.bind=\"altViewInstances.length\">\r\n                <div class=\"alt-toolbar\" if.bind=\"altViewInstances.length > 1\">\r\n                    <view-instance-toolbar\r\n                        view-instances.bind=\"altViewInstances\"\r\n                        active-view-instance.two-way=\"altActiveViewInstance\"\r\n                        show-title=\"true\">\r\n                    </view-instance-toolbar>\r\n                </div>\r\n                <div class=\"alt-body\">\r\n                    <div class=\"alt-host\">\r\n                        <compose\r\n                            repeat.for=\"vi of altViewInstances\"\r\n                            view.bind=\"vi.viewTemplate\"\r\n                            view-model.bind=\"vi.viewModel\"\r\n                            model.bind=\"vi.viewState\"\r\n                            show.bind=\"vi === $parent.altActiveViewInstance\">\r\n                        </compose>\r\n                    </div>\r\n                </div>\r\n            </div>\r\n\r\n        </div>\r\n    </div>\r\n</template>"; });
 define('text!app.css', ['module'], function(module) { module.exports = "router-view {\n  flex: 1 0;\n  display: flex;\n  flex-direction: column;\n}\n"; });
@@ -1020,11 +1156,11 @@ define('text!shell/view-instance-toolbar.css', ['module'], function(module) { mo
 define('text!state/state-repository-chooser.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./state-repository-chooser.css\"></require>\r\n    <div class=\"header\">\r\n        <h1>Plotter Host</h1>\r\n        <h3>Choose Plotter Host:</h3>\r\n        <div class=\"input-group input-group-lg\">\r\n            <select class=\"form-control\" value.bind=\"state\">\r\n                <option model.bind=\"ss\" repeat.for=\"ss of states\">${ss.uniqueId}</option>\r\n            </select>\r\n            <span class=\"input-group-addon\" click.trigger=\"choose()\">\r\n                <i class=\"fa fa-arrow-circle-right fa-lg\"></i>\r\n            </span>\r\n        </div>\r\n    </div>\r\n    <div class=\"body\"></div>\r\n</template>"; });
 define('text!state/new-session.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  flex: 1 1;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
 define('text!state/state-session-chooser.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./state-repository-chooser.css\"></require>\r\n    <div class=\"header\">\r\n        <h1>Session Chooser (${stateRepoUniqueId}) </h1>\r\n        <p>${message} </p>\r\n        <h3>Choose Session:</h3>\r\n        <div class=\"input-group input-group-lg\">\r\n            <select class=\"form-control\" value.bind=\"sessionId\">\r\n                <option value.bind=\"''\">(New Session)</option>\r\n                <option value.bind=\"s\" repeat.for=\"s of sessionList\">${s}</option>\r\n            </select>\r\n            <span class=\"input-group-addon\" click.trigger=\"choose()\">\r\n                <i class=\"fa fa-arrow-circle-right fa-lg\"></i>\r\n            </span>\r\n        </div>\r\n\r\n    </div>\r\n    <div class=\"body\"></div>\r\n</template>\r\n"; });
+define('text!views/globe/globe.html', ['module'], function(module) { module.exports = "<template>\r\n    <h1>Globe</h1>\r\n</template>\r\n"; });
 define('text!state/state-repository-chooser.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  flex: 1 1;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
 define('text!views/one/one.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./one.css\"></require>\r\n    <h1>One (local)</h1>\r\n    <p class=\"wide\">${model.a}</p>\r\n    <select value.bind=\"targetPane\">\r\n        <option repeat.for=\"p of ['nav', 'main', 'alt']\" value.bind=\"p\">${p}</option>\r\n    </select>\r\n    <input type=\"text\" value.bind=\"targetViewModel\" />\r\n    <input type=\"text\" value.bind=\"targetMessage\" />\r\n    <button click.trigger=\"launchTarget()\">Launch</button>\r\n</template>"; });
 define('text!state/state-session-chooser.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  flex: 1 1;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
 define('text!views/one/one.css', ['module'], function(module) { module.exports = ""; });
-define('text!views/globe/globe.html', ['module'], function(module) { module.exports = "<template>\r\n    <h1>Globe</h1>\r\n</template>\r\n"; });
 define('text!views/three/three.html', ['module'], function(module) { module.exports = "<template>\r\n    <h1>three</h1>\r\n</template>"; });
 define('text!views/two/two.html', ['module'], function(module) { module.exports = "<template>\r\n    <h1>two</h1>\r\n</template>"; });
 //# sourceMappingURL=app-bundle.js.map
