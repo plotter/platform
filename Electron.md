@@ -12,9 +12,21 @@ When using ***Electron***, aurelia-fetch-client calls that attempt to retrieve f
 
 The fix is to detect this case and use the node `fs` object to access the file system.
 
-Another trick is to  
+`window.__dirname` has the path to the app resources for both `electron .` and when running the installed app.
 
-## Electron Packaging
+## Electron Packaging and Installation
+
+to run the electron packaging command and then generate the installer, run the npm command:
+
+```bash
+npm run build
+```
+
+the installation will be in `dist/installers/ia32`.
+
+doesn't seem to update the apps in windows, but if you run the `setup.exe` it launches the app.
+
+some notes follow:
 
 ### Run the packaging command:
 
