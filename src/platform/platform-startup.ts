@@ -32,7 +32,9 @@ export class PlatformStartup {
 
                         if (that.electronHelper.isElectron) {
                             let fs = that.electronHelper.fs;
-                            fs.readFile(`${sdn}.json`, (err, stringData) => {
+                            let resourcePath = that.electronHelper.userDataPath;
+
+                            fs.readFile(`${resourcePath}/${sdn}.json`, (err, stringData) => {
                                 if (err) {
                                     reject(err);
                                     return;

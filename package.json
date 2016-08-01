@@ -1,5 +1,5 @@
 {
-  "name": "plotter-platform",
+  "name": "plotterplatform",
   "description": "An Aurelia client application.",
   "version": "0.1.0",
   "main": "main.js",
@@ -8,13 +8,14 @@
     "url": "https://github.com/plotter/platform"
   },
   "scripts": {
-    "clean": "rimraf electron",
+    "clean": "rimraf dist",
     "start": "electron .",
-    "exe32": "electron-packager . ppApp --platform win32 --arch ia32 --out electron/ --overwrite",
-    "exe64": "electron-packager . ppApp --platform win32 --arch x64 --out electron/ --overwrite",
-    "set32": "electron-installer-windows --src electron/ppApp-win32-ia32/ --dest eApp/installers/ia32/",
-    "set64": "electron-installer-windows --src electron/ppApp-win32-x64/ --dest eApp/installers/x64/",
-    "build": "npm run clean && npm run exe32 && npm run set32 && npm run exe64 && npm run set64"
+    "exe32": "electron-packager . plotterplatform --platform win32 --arch ia32 --out dist/ --ignore \"(dist|node_modules)\"",
+    "exe64": "electron-packager . plotterplatform --platform win32 --arch x64 --out dist/ --ignore \"(dist|node_modules)\"",
+    "set32": "electron-installer-windows --src dist/plotterplatform-win32-ia32/ --dest dist/installers/ia32/",
+    "set64": "electron-installer-windows --src dist/plotterplatform-win32-x64/ --dest dist/installers/x64/",
+    "build": "npm run clean && npm run exe32 && npm run set32",
+    "build-all": "npm run clean && npm run exe32 && npm run set32 && npm run exe64 && npm run set64"
   },
   "author": {
     "name": "Mike Graham",

@@ -1,10 +1,26 @@
-# Electron Packaging
+# Electron
 
-## Run the packaging command:
+run the electron version:
+
+```bash
+electron .
+```
+
+## File System
+
+When using ***Electron***, aurelia-fetch-client calls that attempt to retrieve files from the current URL for the app fail because they start with `file://`.
+
+The fix is to detect this case and use the node `fs` object to access the file system.
+
+Another trick is to  
+
+## Electron Packaging
+
+### Run the packaging command:
 
 `electron-packager . ppApp --platform win32 --arch ia32 --out electron/ --overwrite`
 
-## Generate the installer
+### Generate the installer
 
 `npm install -g electron-installer-windows`
 
@@ -22,7 +38,7 @@
 
 `electron-installer-windows --config eAppConfig.json`
 
-## Electron Packager Help
+### Electron Packager Help
 
 `electron-packager --help`
 

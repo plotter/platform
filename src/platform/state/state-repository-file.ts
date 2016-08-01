@@ -41,19 +41,22 @@ export class StateRepositoryFile implements StateRepository {
 
             if (that.electronHelper.isElectron) {
                 let fs = that.electronHelper.fs;
-                fs.readFile(`${that.path}/${that.uniqueId}/pak-directory.json`, (reason, stringData) => {
-                    if (reason) {
-                        reject(new Error(`fetch pak-directory failed: reason: \r\n\r\n${reason}`));
+                let resourcePath = that.electronHelper.userDataPath;
+
+                fs.readFile(`${resourcePath}/${that.path}/${that.uniqueId}/pak-directory.json`,
+                    (reason, stringData) => {
+                        if (reason) {
+                            reject(new Error(`fetch pak-directory failed: reason: \r\n\r\n${reason}`));
+                            return;
+                        }
+
+                        let data = JSON.parse(stringData);
+
+                        let pakDirectory = PakDirectory.fromJSON(data);
+                        pakDirectory.stateRepository = that;
+                        resolve(pakDirectory);
                         return;
-                    }
-
-                    let data = JSON.parse(stringData);
-
-                    let pakDirectory = PakDirectory.fromJSON(data);
-                    pakDirectory.stateRepository = that;
-                    resolve(pakDirectory);
-                    return;
-                });
+                    });
             } else {
 
                 that.httpClient.fetch(`${that.path}/${that.uniqueId}/pak-directory.json`)
@@ -84,7 +87,9 @@ export class StateRepositoryFile implements StateRepository {
 
             if (that.electronHelper.isElectron) {
                 let fs = that.electronHelper.fs;
-                fs.readFile(`${that.path}/${that.uniqueId}/${sessionId}.json`, (reason, stringData) => {
+                let resourcePath = that.electronHelper.userDataPath;
+
+                fs.readFile(`${resourcePath}/${that.path}/${that.uniqueId}/${sessionId}.json`, (reason, stringData) => {
                     if (reason) {
                         reject(new Error(`fetch session list: reason: \r\n\r\n${reason}`));
                         return;
@@ -122,13 +127,13 @@ export class StateRepositoryFile implements StateRepository {
     public getSessionList() {
         let that = this;
 
-        alert(`path: ${this.path}`);
-
         return new Promise<string[]>((resolve, reject) => {
 
             if (that.electronHelper.isElectron) {
                 let fs = that.electronHelper.fs;
-                fs.readFile(`${that.path}/${that.uniqueId}/session-list.json`, (reason, stringData) => {
+                let resourcePath = that.electronHelper.userDataPath;
+
+                fs.readFile(`${resourcePath}/${that.path}/${that.uniqueId}/session-list.json`, (reason, stringData) => {
                     if (reason) {
                         reject(new Error(`fetch session list: reason: \r\n\r\n${reason}`));
                         return;

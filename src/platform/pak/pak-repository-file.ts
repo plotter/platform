@@ -30,7 +30,9 @@ export class PakRepositoryFile implements PakRepository {
 
             if (that.electronHelper.isElectron) {
                 let fs = that.electronHelper.fs;
-                fs.readFile(`${that.path}/${that.uniqueId}/${pakId}.json`, (reason, stringData) => {
+                let resourcePath = that.electronHelper.userDataPath;
+
+                fs.readFile(`${resourcePath}/${that.path}/${that.uniqueId}/${pakId}.json`, (reason, stringData) => {
                     if (reason) {
                         reject(new Error(`fetch pak failed: reason: \r\n\r\n${reason}`));
                         return;
@@ -72,7 +74,9 @@ export class PakRepositoryFile implements PakRepository {
 
             if (that.electronHelper.isElectron) {
                 let fs = that.electronHelper.fs;
-                fs.readFile(`${that.path}/${that.uniqueId}/pak-list.json`, (reason, stringData) => {
+                let resourcePath = that.electronHelper.userDataPath;
+
+                fs.readFile(`${resourcePath}/${that.path}/${that.uniqueId}/pak-list.json`, (reason, stringData) => {
                     if (reason) {
                         reject(new Error(`fetch pak list failed: reason: \r\n\r\n${reason}`));
                         return;
