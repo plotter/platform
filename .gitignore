@@ -3,3 +3,17 @@ node_modules
 .DS_STORE
 electron
 dist/plotterplatform-win32-ia32
+
+
+# PhoneGap - Mac
+phonegap/.DS_Store
+
+# PhoneGap - Node
+phonegap/npm-debug.log
+phonegap/node_modules
+
+# PhoneGap - Cordova
+phonegap/platforms
+
+# PhoneGap - res
+phonegap/resources/signing
