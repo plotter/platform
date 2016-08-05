@@ -1,21 +1,16 @@
 {
-  "name": "phonegap-template-hello-world",
-  "version": "4.0.2",
-  "description": "> A Hello World template built with PhoneGap",
+  "name": "plotter-platform",
+  "version": "1.0.6",
+  "description": "PlotterPlatform App built with PhoneGap",
   "repository": {
     "type": "git",
-    "url": "https://github.com/phonegap/phonegap-app-hello-world.git"
+    "url": "https://github.com/plotter/platform.git"
   },
-  "author": "PhoneGap Team",
-  "license": "Apache-2.0.0",
-  "keywords": [
-    "ecosystem:phonegap",
-    "ecosystem:cordova",
-    "cordova:template",
-    "phonegap:template"
-  ],
+  "author": "Plotter Team",
+  "license": "MIT",
+  "keywords": ["plotter"],
   "bugs": {
-    "url": "https://github.com/phonegap/phonegap-app-hello-world/issues"
+    "url": "https://github.com/plotter/platform/issues"
   },
-  "homepage": "https://github.com/phonegap/phonegap-app-hello-world"
+  "homepage": "https://plotter.github.io/platform"
 }
