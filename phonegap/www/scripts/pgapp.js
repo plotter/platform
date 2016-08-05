@@ -16,7 +16,9 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-var app = {
+define('pgapp', ['require'], function(require) {
+    var locreq = require;
+var pgapp = {
     // Application Constructor
     initialize: function () {
         this.bindEvents();
@@ -33,7 +35,7 @@ var app = {
     // The scope of 'this' is the event. In order to call the 'receivedEvent'
     // function, we must explicitly call 'app.receivedEvent(...);'
     onDeviceReady: function () {
-        app.receivedEvent('deviceready');
+        pgapp.receivedEvent('deviceready');
     },
 
     // Update DOM on a Received Event
@@ -47,20 +49,12 @@ var app = {
 
         console.log('Received Event: ' + id);
 
-        require(["aurelia-bootstrapper"], function (b) {
+        locreq(['pgapp'], function (b) {
+            alert('hello');
         });
     },
-
-    getParameterByName: function (name, url) {
-        if (!url) url = window.location.href;
-        name = name.replace(/[\[\]]/g, "\\$&");
-        var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
-            results = regex.exec(url);
-        if (!results) return null;
-        if (!results[2]) return '';
-        return decodeURIComponent(results[2].replace(/\+/g, " "));
-    }
 };
+return pgapp;
+});
 
-plotterStateDirectoryName = app.getParameterByName('dir') || 'state-directory'
 
