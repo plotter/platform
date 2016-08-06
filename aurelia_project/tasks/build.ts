@@ -5,6 +5,7 @@ import processCSS from './process-css';
 import {build} from 'aurelia-cli';
 import * as project from '../aurelia.json';
 import tslint from './tslint';
+import copyToPhoneGap from './copy-to-phone-gap';
 
 export default gulp.series(
   readProjectConfiguration,
@@ -14,7 +15,8 @@ export default gulp.series(
     processCSS
   ),
   tslint,
-  writeBundles
+  writeBundles,
+  copyToPhoneGap
 );
 
 function readProjectConfiguration() {

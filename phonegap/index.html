@@ -40,26 +40,39 @@
 
     <link rel="stylesheet" type="text/css" href="css/index.css" />
     <title>Plotter Platform</title>
+    <script type="text/javascript">
+        function getParameterByName(name, url) {
+            if (!url) url = window.location.href;
+            name = name.replace(/[\[\]]/g, "\\$&");
+            var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+                results = regex.exec(url);
+            if (!results) return null;
+            if (!results[2]) return '';
+            return decodeURIComponent(results[2].replace(/\+/g, " "));
+        }
+
+        plotterStateDirectoryName = getParameterByName('dir') || 'state-directory'
+    </script>
 </head>
 
 <body aurelia-app="main">
-    <div class="app">
+    <div class="app" >
         <h1>PhoneGap - Plotter Platform</h1>
         <div id="deviceready" class="blink">
-            <h2 class="event listening">Connecting to Plotter</p>
-            <h2 class="event received">Plotter is Ready</p>
+            <h2 class="event listening">Connecting to Plotter</h2>
+            <h2 class="event received">Plotter is Ready</h2>
+            <div class="event received" ></div>
         </div>
     </div>
     <script type="text/javascript" src="cordova.js"></script>
-    <script type="text/javascript" src="scripts/text.js"></script>
-    <script type="text/javascript" src="scripts/require.js"></script>
-    <script type="text/javascript" src="scripts/text.js"></script>
+    <script type="text/javascript" src="scripts/vendor-bundle.js"></script>
     <script type="text/javascript" src="scripts/pgapp.js"></script>
     <script type="text/javascript">
-        require(['./scripts/pgapp'], function(pgapp) {
+        require(['pgapp'], function(pgapp) {
             pgapp.initialize();
         });
     </script>
+    
 </body>
 
 </html>

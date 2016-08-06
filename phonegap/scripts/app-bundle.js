@@ -738,6 +738,7 @@ define('environment',["require", "exports"], function (require, exports) {
 
 define('main',["require", "exports", './environment'], function (require, exports, environment_1) {
     "use strict";
+    alert('hello from main !! :)');
     Promise.config({
         warnings: {
             wForgottenReturn: false,
@@ -754,13 +755,6 @@ define('main',["require", "exports", './environment'], function (require, export
             aurelia.use.plugin('aurelia-testing');
         }
         aurelia.start().then(function () { return aurelia.setRoot(); });
-    }
-    exports.configure = configure;
-});
-
-define('resources/index',["require", "exports"], function (require, exports) {
-    "use strict";
-    function configure(config) {
     }
     exports.configure = configure;
 });
@@ -891,6 +885,13 @@ define('shell/view-instance-toolbar',["require", "exports", 'aurelia-framework',
         return ViewInstanceToolbar;
     }());
     exports.ViewInstanceToolbar = ViewInstanceToolbar;
+});
+
+define('resources/index',["require", "exports"], function (require, exports) {
+    "use strict";
+    function configure(config) {
+    }
+    exports.configure = configure;
 });
 
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
@@ -1044,6 +1045,26 @@ define('platform/state/state-repository-service',["require", "exports"], functio
     exports.StateRepositoryService = StateRepositoryService;
 });
 
+define('views/globe/globe',["require", "exports"], function (require, exports) {
+    "use strict";
+    var Globe = (function () {
+        function Globe() {
+        }
+        return Globe;
+    }());
+    exports.Globe = Globe;
+});
+
+define('views/two/two',["require", "exports"], function (require, exports) {
+    "use strict";
+    var Two = (function () {
+        function Two() {
+        }
+        return Two;
+    }());
+    exports.Two = Two;
+});
+
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -1086,16 +1107,6 @@ define('views/one/one',["require", "exports", 'aurelia-framework', '../../shell/
     exports.One = One;
 });
 
-define('views/globe/globe',["require", "exports"], function (require, exports) {
-    "use strict";
-    var Globe = (function () {
-        function Globe() {
-        }
-        return Globe;
-    }());
-    exports.Globe = Globe;
-});
-
 define('views/three/three',["require", "exports"], function (require, exports) {
     "use strict";
     var Three = (function () {
@@ -1104,16 +1115,6 @@ define('views/three/three',["require", "exports"], function (require, exports) {
         return Three;
     }());
     exports.Three = Three;
-});
-
-define('views/two/two',["require", "exports"], function (require, exports) {
-    "use strict";
-    var Two = (function () {
-        function Two() {
-        }
-        return Two;
-    }());
-    exports.Two = Two;
 });
 
 define('../test/unit/app.spec',["require", "exports", '../../src/app', '../../src/platform/platform-startup', '../../src/platform/plotter', 'aurelia-framework', 'aurelia-fetch-client'], function (require, exports, app_1, platform_startup_1, plotter_1, aurelia_framework_1, aurelia_fetch_client_1) {
