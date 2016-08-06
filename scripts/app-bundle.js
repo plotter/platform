@@ -55,7 +55,9 @@ define('platform/electron-helper',["require", "exports"], function (require, exp
         }
         Object.defineProperty(ElectronHelper.prototype, "isElectron", {
             get: function () {
-                return window.location && window.location.toString().startsWith('file:');
+                return window.location
+                    && window.location.toString().startsWith('file:')
+                    && window.location.toString().indexOf('phonegap') < 0;
             },
             enumerable: true,
             configurable: true
@@ -617,16 +619,18 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-define('platform/platform-startup',["require", "exports", 'aurelia-framework', 'aurelia-fetch-client', './state/state-directory', './plotter', './electron-helper'], function (require, exports, aurelia_framework_1, aurelia_fetch_client_1, state_directory_1, plotter_1, electron_helper_1) {
+define('platform/platform-startup',["require", "exports", 'aurelia-framework', 'aurelia-fetch-client', './state/state-directory', './plotter', './electron-helper', './phone-gap-helper'], function (require, exports, aurelia_framework_1, aurelia_fetch_client_1, state_directory_1, plotter_1, electron_helper_1, phone_gap_helper_1) {
     "use strict";
     var PlatformStartup = (function () {
-        function PlatformStartup(httpClient, plotter, electronHelper) {
+        function PlatformStartup(httpClient, plotter, electronHelper, phoneGapHelper) {
             this.httpClient = httpClient;
             this.plotter = plotter;
             this.electronHelper = electronHelper;
+            this.phoneGapHelper = phoneGapHelper;
         }
         PlatformStartup.prototype.start = function () {
             var that = this;
+            alert('start...');
             return new Promise(function (resolve, reject) {
                 var sdn = that.plotter.stateDirectoryName;
                 if (sdn.toLowerCase().startsWith('service:')) {
@@ -654,6 +658,9 @@ define('platform/platform-startup',["require", "exports", 'aurelia-framework', '
                             return;
                         });
                     }
+                    else if (that.phoneGapHelper.isPhoneGap) {
+                        alert('is phone gap !! :)');
+                    }
                     else {
                         that.httpClient.fetch(sdn + ".json")
                             .then(function (response) {
@@ -672,8 +679,8 @@ define('platform/platform-startup',["require", "exports", 'aurelia-framework', '
             });
         };
         PlatformStartup = __decorate([
-            aurelia_framework_1.inject(aurelia_fetch_client_1.HttpClient, plotter_1.Plotter, electron_helper_1.ElectronHelper), 
-            __metadata('design:paramtypes', [aurelia_fetch_client_1.HttpClient, plotter_1.Plotter, electron_helper_1.ElectronHelper])
+            aurelia_framework_1.inject(aurelia_fetch_client_1.HttpClient, plotter_1.Plotter, electron_helper_1.ElectronHelper, phone_gap_helper_1.PhoneGapHelper), 
+            __metadata('design:paramtypes', [aurelia_fetch_client_1.HttpClient, plotter_1.Plotter, electron_helper_1.ElectronHelper, phone_gap_helper_1.PhoneGapHelper])
         ], PlatformStartup);
         return PlatformStartup;
     }());
@@ -738,7 +745,6 @@ define('environment',["require", "exports"], function (require, exports) {
 
 define('main',["require", "exports", './environment'], function (require, exports, environment_1) {
     "use strict";
-    alert('hello from main !! :)');
     Promise.config({
         warnings: {
             wForgottenReturn: false,
@@ -1170,6 +1176,26 @@ define('../test/unit/platform/platform-startup.spec',["require", "exports", 'aur
             expect(true).toBe(true);
         });
     });
+});
+
+define('platform/phone-gap-helper',["require", "exports"], function (require, exports) {
+    "use strict";
+    var PhoneGapHelper = (function () {
+        function PhoneGapHelper() {
+        }
+        Object.defineProperty(PhoneGapHelper.prototype, "isPhoneGap", {
+            get: function () {
+                return window.location
+                    && window.location.toString().startsWith('file:')
+                    && window.location.toString().indexOf('phonegap') > 0;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        ;
+        return PhoneGapHelper;
+    }());
+    exports.PhoneGapHelper = PhoneGapHelper;
 });
 
 define('text!app.html', ['module'], function(module) { module.exports = "<template>\n  <require from=\"app.css\"></require>\n  <router-view></router-view>\n</template>\n"; });

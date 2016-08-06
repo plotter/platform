@@ -3,14 +3,21 @@ import { HttpClient } from 'aurelia-fetch-client';
 import { StateDirectory } from './state/state-directory';
 import { Plotter } from './plotter';
 import { ElectronHelper } from './electron-helper';
+import { PhoneGapHelper } from './phone-gap-helper';
 
-@inject(HttpClient, Plotter, ElectronHelper)
+@inject(HttpClient, Plotter, ElectronHelper, PhoneGapHelper)
 export class PlatformStartup {
 
-    constructor(private httpClient: HttpClient, private plotter: Plotter, private electronHelper: ElectronHelper) { }
+    constructor(
+        private httpClient: HttpClient,
+        private plotter: Plotter,
+        private electronHelper: ElectronHelper,
+        private phoneGapHelper: PhoneGapHelper) { }
 
     public start(): Promise<StateDirectory> {
         let that = this;
+
+        alert('start...');
 
         return new Promise<StateDirectory>((resolve, reject) => {
 
@@ -47,6 +54,8 @@ export class PlatformStartup {
                                 resolve(stateDirectory);
                                 return;
                             });
+                        } else if (that.phoneGapHelper.isPhoneGap) {
+                            alert('is phone gap !! :)');
                         } else {
                             that.httpClient.fetch(`${sdn}.json`)
                                 .then(response => {
