@@ -1,8 +1,7 @@
 export class ElectronHelper {
     public get isElectron()  {
-        return window.location
-            && window.location.toString().startsWith('file:')
-            && window.location.toString().indexOf('phonegap') < 0;
+        return this.fs && window.location
+            && window.location.toString().startsWith('file:');
     };
 
     get fs() {

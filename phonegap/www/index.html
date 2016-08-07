@@ -38,7 +38,9 @@
     -->
     <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: gap: 'unsafe-inline' https://ssl.gstatic.com; style-src 'self' 'unsafe-inline'; media-src *" /> -->
 
-    <link rel="stylesheet" type="text/css" href="css/index.css" />
+  <link rel="stylesheet" href="scripts/font-awesome.min.css">
+  <link rel="stylesheet" href="scripts/bootstrap.min.css">
+  <link rel="stylesheet" href="./index.css">
     <title>Plotter Platform</title>
     <script type="text/javascript">
         function getParameterByName(name, url) {
@@ -51,12 +53,12 @@
             return decodeURIComponent(results[2].replace(/\+/g, " "));
         }
 
-        plotterStateDirectoryName = getParameterByName('dir') || 'state-directory'
+        plotterStateDirectoryName = getParameterByName('dir') || 'state-directory';
     </script>
 </head>
 
 <body aurelia-app="main">
-    <div class="app" >
+    <div class="app"  if.bind="false">
         <h1>PhoneGap - Plotter Platform</h1>
         <div id="deviceready" class="blink">
             <h2 class="event listening">Connecting to Plotter</h2>
@@ -68,6 +70,7 @@
     <script type="text/javascript" src="scripts/vendor-bundle.js"></script>
     <script type="text/javascript" src="scripts/pgapp.js"></script>
     <script type="text/javascript">
+    
         require(['pgapp'], function(pgapp) {
             pgapp.initialize();
         });

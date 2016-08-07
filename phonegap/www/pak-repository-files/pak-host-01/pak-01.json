@@ -1,0 +1,21 @@
+{
+    "locked": true,
+    "uniqueId": "pak-01",
+    "views": [
+        {
+            "uniqueId": "view1",
+            "pane": "main",
+            "moduleUrl": "../views/one/one"
+        },
+        {
+            "uniqueId": "view2",
+            "pane": "main",
+            "moduleUrl": "../views/two/two"
+        },
+        {
+            "uniqueId": "view3",
+            "pane": "nav",
+            "moduleUrl": "../views/three/three"
+        }
+    ]
+}

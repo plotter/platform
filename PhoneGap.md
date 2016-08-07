@@ -32,6 +32,12 @@ phonegap serve
 > * See [docs.cordova.io](http://docs.cordova.io) - how PhoneGap and Cordova applications are configured.
 > * PhoneGap applications are configured using a config.xml file at the root of your application
 
+### File System - Get local config files
+
+```javascript
+let pathToFile = `${cordova.file.dataDirectory}phonegapdevapp/www/${fileName}`;
+```
+
 ### [Android Signing](http://docs.phonegap.com/phonegap-build/signing/android/)
 
 

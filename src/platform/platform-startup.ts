@@ -17,8 +17,6 @@ export class PlatformStartup {
     public start(): Promise<StateDirectory> {
         let that = this;
 
-        alert('start...');
-
         return new Promise<StateDirectory>((resolve, reject) => {
 
             let sdn = that.plotter.stateDirectoryName;
@@ -55,7 +53,13 @@ export class PlatformStartup {
                                 return;
                             });
                         } else if (that.phoneGapHelper.isPhoneGap) {
-                            alert('is phone gap !! :)');
+                            that.phoneGapHelper.readFromFile(`${sdn}.json`)
+                                .then((o: any) => {
+                                    let stateDirectory = StateDirectory.fromJSON(o);
+                                    that.plotter.stateDirectory = stateDirectory;
+                                    resolve(stateDirectory);
+                                })
+                                .catch(r => reject(r));
                         } else {
                             that.httpClient.fetch(`${sdn}.json`)
                                 .then(response => {

@@ -55,9 +55,8 @@ define('platform/electron-helper',["require", "exports"], function (require, exp
         }
         Object.defineProperty(ElectronHelper.prototype, "isElectron", {
             get: function () {
-                return window.location
-                    && window.location.toString().startsWith('file:')
-                    && window.location.toString().indexOf('phonegap') < 0;
+                return this.fs && window.location
+                    && window.location.toString().startsWith('file:');
             },
             enumerable: true,
             configurable: true
@@ -354,6 +353,79 @@ define('platform/state/state-repository',["require", "exports"], function (requi
     "use strict";
 });
 
+define('platform/phone-gap-helper',["require", "exports"], function (require, exports) {
+    "use strict";
+    var PhoneGapHelper = (function () {
+        function PhoneGapHelper() {
+            var _this = this;
+            this.readFromFile = function (fileName) {
+                var that = _this;
+                return new Promise(function (resolve, reject) {
+                    var pathToFile = "" + _this.baseUrl + fileName;
+                    window.resolveLocalFileSystemURL(pathToFile, function (fileEntry) {
+                        fileEntry.file(function (file) {
+                            var reader = new FileReader();
+                            reader.onloadend = function (e) {
+                                resolve(JSON.parse(this.result));
+                            };
+                            reader.readAsText(file);
+                        }, function (reason) {
+                            reject(new Error("fileEntry.file Failed.  " + that.errorHandler(fileName, reason) + " Reason: " + JSON.stringify(reason)));
+                        });
+                    }, function (reason) {
+                        reject(new Error("resolveLocalFileSystemURL Failed.  " + that.errorHandler(fileName, reason) + " Reason: " + JSON.stringify(reason)));
+                    });
+                });
+            };
+            this.errorHandler = function (fileName, e) {
+                var msg = '';
+                switch (e.code) {
+                    case window.FileError.QUOTA_EXCEEDED_ERR:
+                        msg = 'Storage quota exceeded';
+                        break;
+                    case window.FileError.NOT_FOUND_ERR:
+                        msg = 'File not found';
+                        break;
+                    case window.FileError.SECURITY_ERR:
+                        msg = 'Security error';
+                        break;
+                    case window.FileError.INVALID_MODIFICATION_ERR:
+                        msg = 'Invalid modification';
+                        break;
+                    case window.FileError.INVALID_STATE_ERR:
+                        msg = 'Invalid state';
+                        break;
+                    default:
+                        msg = 'Unknown error';
+                        break;
+                }
+                ;
+                return "Error (" + fileName + "): " + msg;
+            };
+        }
+        Object.defineProperty(PhoneGapHelper.prototype, "baseUrl", {
+            get: function () {
+                window.plotterRootPath = window.plotterRootPath
+                    || window.location.toString().replace('index.html', '');
+                return window.plotterRootPath;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(PhoneGapHelper.prototype, "isPhoneGap", {
+            get: function () {
+                return window.cordova && window.location
+                    && window.location.toString().startsWith('file:');
+            },
+            enumerable: true,
+            configurable: true
+        });
+        ;
+        return PhoneGapHelper;
+    }());
+    exports.PhoneGapHelper = PhoneGapHelper;
+});
+
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -363,13 +435,14 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-define('platform/state/state-repository-file',["require", "exports", 'aurelia-framework', 'aurelia-fetch-client', '../pak/pak-directory', './state-session', '../electron-helper'], function (require, exports, aurelia_framework_1, aurelia_fetch_client_1, pak_directory_1, state_session_1, electron_helper_1) {
+define('platform/state/state-repository-file',["require", "exports", 'aurelia-framework', 'aurelia-fetch-client', '../pak/pak-directory', './state-session', '../electron-helper', '../phone-gap-helper'], function (require, exports, aurelia_framework_1, aurelia_fetch_client_1, pak_directory_1, state_session_1, electron_helper_1, phone_gap_helper_1) {
     "use strict";
     var StateRepositoryFile = (function () {
-        function StateRepositoryFile(httpClient, electronHelper) {
+        function StateRepositoryFile(httpClient, electronHelper, phoneGapHelper) {
             var _this = this;
             this.httpClient = httpClient;
             this.electronHelper = electronHelper;
+            this.phoneGapHelper = phoneGapHelper;
             this.locked = false;
             this.uniqueId = 'state-repository';
             this.stateRepositoryType = 'File';
@@ -396,6 +469,16 @@ define('platform/state/state-repository-file',["require", "exports", 'aurelia-fr
                             return;
                         });
                     }
+                    else if (that.phoneGapHelper.isPhoneGap) {
+                        var pakDirectoryFile = that.path + "/" + that.uniqueId + "/pak-directory.json";
+                        that.phoneGapHelper.readFromFile("" + pakDirectoryFile)
+                            .then(function (o) {
+                            var pakDirectory = pak_directory_1.PakDirectory.fromJSON(o);
+                            pakDirectory.stateRepository = that;
+                            resolve(pakDirectory);
+                        })
+                            .catch(function (r) { return reject(r.toString()); });
+                    }
                     else {
                         that.httpClient.fetch(that.path + "/" + that.uniqueId + "/pak-directory.json")
                             .then(function (response) {
@@ -414,7 +497,7 @@ define('platform/state/state-repository-file',["require", "exports", 'aurelia-fr
             };
         }
         StateRepositoryFile.fromJSON = function (json) {
-            var stateRepository = new StateRepositoryFile(new aurelia_fetch_client_1.HttpClient(), new electron_helper_1.ElectronHelper());
+            var stateRepository = new StateRepositoryFile(new aurelia_fetch_client_1.HttpClient(), new electron_helper_1.ElectronHelper(), new phone_gap_helper_1.PhoneGapHelper());
             stateRepository.locked = json.locked;
             stateRepository.uniqueId = json.uniqueId;
             stateRepository.stateRepositoryType = json.stateRepositoryType;
@@ -442,6 +525,17 @@ define('platform/state/state-repository-file',["require", "exports", 'aurelia-fr
                         resolve(stateSession);
                         return;
                     });
+                }
+                else if (that.phoneGapHelper.isPhoneGap) {
+                    var stateSessionFile = that.path + "/" + that.uniqueId + "/" + sessionId + ".json";
+                    that.phoneGapHelper.readFromFile("" + stateSessionFile)
+                        .then(function (o) {
+                        var stateSession = state_session_1.StateSession.fromJSON(o);
+                        stateSession.stateRepository = that;
+                        that.stateSessionMap.set(sessionId, stateSession);
+                        resolve(stateSession);
+                    })
+                        .catch(function (r) { return reject(r.toString()); });
                 }
                 else {
                     that.httpClient.fetch(that.path + "/" + that.uniqueId + "/" + sessionId + ".json")
@@ -478,6 +572,14 @@ define('platform/state/state-repository-file',["require", "exports", 'aurelia-fr
                         return;
                     });
                 }
+                else if (that.phoneGapHelper.isPhoneGap) {
+                    var sessionListFile = that.path + "/" + that.uniqueId + "/session-list.json";
+                    that.phoneGapHelper.readFromFile("" + sessionListFile)
+                        .then(function (data) {
+                        resolve(data.sessionList);
+                    })
+                        .catch(function (r) { return reject(r); });
+                }
                 else {
                     that.httpClient.fetch(that.path + "/" + that.uniqueId + "/session-list.json")
                         .then(function (response) {
@@ -501,15 +603,15 @@ define('platform/state/state-repository-file',["require", "exports", 'aurelia-fr
             };
         };
         StateRepositoryFile = __decorate([
-            aurelia_framework_1.inject(aurelia_fetch_client_1.HttpClient, electron_helper_1.ElectronHelper), 
-            __metadata('design:paramtypes', [aurelia_fetch_client_1.HttpClient, electron_helper_1.ElectronHelper])
+            aurelia_framework_1.inject(aurelia_fetch_client_1.HttpClient, electron_helper_1.ElectronHelper, phone_gap_helper_1.PhoneGapHelper), 
+            __metadata('design:paramtypes', [aurelia_fetch_client_1.HttpClient, electron_helper_1.ElectronHelper, phone_gap_helper_1.PhoneGapHelper])
         ], StateRepositoryFile);
         return StateRepositoryFile;
     }());
     exports.StateRepositoryFile = StateRepositoryFile;
 });
 
-define('platform/state/state-directory',["require", "exports", 'aurelia-fetch-client', './state-repository-file', '../electron-helper'], function (require, exports, aurelia_fetch_client_1, state_repository_file_1, electron_helper_1) {
+define('platform/state/state-directory',["require", "exports", 'aurelia-fetch-client', './state-repository-file', '../electron-helper', '../phone-gap-helper'], function (require, exports, aurelia_fetch_client_1, state_repository_file_1, electron_helper_1, phone_gap_helper_1) {
     "use strict";
     var StateDirectory = (function () {
         function StateDirectory() {
@@ -522,7 +624,7 @@ define('platform/state/state-directory',["require", "exports", 'aurelia-fetch-cl
                 switch (stateRepositoryJSON.stateRepositoryType) {
                     case 'File':
                         {
-                            var stateRepository = new state_repository_file_1.StateRepositoryFile(new aurelia_fetch_client_1.HttpClient(), new electron_helper_1.ElectronHelper());
+                            var stateRepository = new state_repository_file_1.StateRepositoryFile(new aurelia_fetch_client_1.HttpClient(), new electron_helper_1.ElectronHelper(), new phone_gap_helper_1.PhoneGapHelper());
                             stateRepository.locked = stateRepositoryJSON.locked;
                             stateRepository.uniqueId = stateRepositoryJSON.uniqueId;
                             stateRepository.stateRepositoryType = stateRepositoryJSON.stateRepositoryType;
@@ -630,7 +732,6 @@ define('platform/platform-startup',["require", "exports", 'aurelia-framework', '
         }
         PlatformStartup.prototype.start = function () {
             var that = this;
-            alert('start...');
             return new Promise(function (resolve, reject) {
                 var sdn = that.plotter.stateDirectoryName;
                 if (sdn.toLowerCase().startsWith('service:')) {
@@ -659,7 +760,13 @@ define('platform/platform-startup',["require", "exports", 'aurelia-framework', '
                         });
                     }
                     else if (that.phoneGapHelper.isPhoneGap) {
-                        alert('is phone gap !! :)');
+                        that.phoneGapHelper.readFromFile(sdn + ".json")
+                            .then(function (o) {
+                            var stateDirectory = state_directory_1.StateDirectory.fromJSON(o);
+                            that.plotter.stateDirectory = stateDirectory;
+                            resolve(stateDirectory);
+                        })
+                            .catch(function (r) { return reject(r); });
                     }
                     else {
                         that.httpClient.fetch(sdn + ".json")
@@ -761,6 +868,13 @@ define('main',["require", "exports", './environment'], function (require, export
             aurelia.use.plugin('aurelia-testing');
         }
         aurelia.start().then(function () { return aurelia.setRoot(); });
+    }
+    exports.configure = configure;
+});
+
+define('resources/index',["require", "exports"], function (require, exports) {
+    "use strict";
+    function configure(config) {
     }
     exports.configure = configure;
 });
@@ -891,13 +1005,6 @@ define('shell/view-instance-toolbar',["require", "exports", 'aurelia-framework',
         return ViewInstanceToolbar;
     }());
     exports.ViewInstanceToolbar = ViewInstanceToolbar;
-});
-
-define('resources/index',["require", "exports"], function (require, exports) {
-    "use strict";
-    function configure(config) {
-    }
-    exports.configure = configure;
 });
 
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
@@ -1061,14 +1168,14 @@ define('views/globe/globe',["require", "exports"], function (require, exports) {
     exports.Globe = Globe;
 });
 
-define('views/two/two',["require", "exports"], function (require, exports) {
+define('views/three/three',["require", "exports"], function (require, exports) {
     "use strict";
-    var Two = (function () {
-        function Two() {
+    var Three = (function () {
+        function Three() {
         }
-        return Two;
+        return Three;
     }());
-    exports.Two = Two;
+    exports.Three = Three;
 });
 
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
@@ -1113,14 +1220,14 @@ define('views/one/one',["require", "exports", 'aurelia-framework', '../../shell/
     exports.One = One;
 });
 
-define('views/three/three',["require", "exports"], function (require, exports) {
+define('views/two/two',["require", "exports"], function (require, exports) {
     "use strict";
-    var Three = (function () {
-        function Three() {
+    var Two = (function () {
+        function Two() {
         }
-        return Three;
+        return Two;
     }());
-    exports.Three = Three;
+    exports.Two = Two;
 });
 
 define('../test/unit/app.spec',["require", "exports", '../../src/app', '../../src/platform/platform-startup', '../../src/platform/plotter', 'aurelia-framework', 'aurelia-fetch-client'], function (require, exports, app_1, platform_startup_1, plotter_1, aurelia_framework_1, aurelia_fetch_client_1) {
@@ -1178,42 +1285,22 @@ define('../test/unit/platform/platform-startup.spec',["require", "exports", 'aur
     });
 });
 
-define('platform/phone-gap-helper',["require", "exports"], function (require, exports) {
-    "use strict";
-    var PhoneGapHelper = (function () {
-        function PhoneGapHelper() {
-        }
-        Object.defineProperty(PhoneGapHelper.prototype, "isPhoneGap", {
-            get: function () {
-                return window.location
-                    && window.location.toString().startsWith('file:')
-                    && window.location.toString().indexOf('phonegap') > 0;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        ;
-        return PhoneGapHelper;
-    }());
-    exports.PhoneGapHelper = PhoneGapHelper;
-});
-
 define('text!app.html', ['module'], function(module) { module.exports = "<template>\n  <require from=\"app.css\"></require>\n  <router-view></router-view>\n</template>\n"; });
-define('text!app.css', ['module'], function(module) { module.exports = "router-view {\n  flex: 1 0;\n  display: flex;\n  flex-direction: column;\n}\n"; });
 define('text!shell/shell.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./shell.css\"></require>\r\n    <require from=\"./view-instance-toolbar\"></require>\r\n\r\n    <div class=\"header\">\r\n        <h1>Shell (${hostId} / ${sessionId}) </h1>\r\n    </div>\r\n\r\n    <div class=\"body\">\r\n        <div class=\"nav\" if.bind=\"navViewInstances.length\">\r\n            <div class=\"nav-body\">\r\n                <div class=\"nav-host\">\r\n                    <compose\r\n                        repeat.for=\"vi of navViewInstances\"\r\n                        view.bind=\"vi.viewTemplate\"\r\n                        view-model.bind=\"vi.viewModel\"\r\n                        model.bind=\"vi.viewState\"\r\n                        show.bind=\"vi === $parent.navActiveViewInstance\">\r\n                    </compose>\r\n                </div>\r\n            </div>\r\n            <div class=\"nav-toolbar\" if.bind=\"navViewInstances.length > 1\">\r\n                <view-instance-toolbar\r\n                    view-instances.bind=\"navViewInstances\"\r\n                    active-view-instance.two-way=\"navActiveViewInstance\">\r\n                </view-instance-toolbar>\r\n            </div>\r\n        </div>\r\n\r\n        <div class=\"body2\">\r\n\r\n            <div class=\"main\" if.bind=\"mainViewInstances.length\">\r\n                <div class=\"main-toolbar\" if.bind=\"mainViewInstances.length > 1\">\r\n                    <view-instance-toolbar\r\n                        view-instances.bind=\"mainViewInstances\"\r\n                        active-view-instance.two-way=\"mainActiveViewInstance\"\r\n                        show-title=\"true\">\r\n                    </view-instance-toolbar>\r\n                </div>\r\n                <div class=\"main-body\">\r\n                    <div class=\"main-host\">\r\n                        <compose\r\n                            repeat.for=\"vi of mainViewInstances\"\r\n                            view.bind=\"vi.viewTemplate\"\r\n                            view-model.bind=\"vi.viewModel\"\r\n                            model.bind=\"vi.viewState\"\r\n                            show.bind=\"vi === $parent.mainActiveViewInstance\">\r\n                        </compose>\r\n                    </div>\r\n                </div>\r\n            </div>\r\n\r\n            <div class=\"alt\" if.bind=\"altViewInstances.length\">\r\n                <div class=\"alt-toolbar\" if.bind=\"altViewInstances.length > 1\">\r\n                    <view-instance-toolbar\r\n                        view-instances.bind=\"altViewInstances\"\r\n                        active-view-instance.two-way=\"altActiveViewInstance\"\r\n                        show-title=\"true\">\r\n                    </view-instance-toolbar>\r\n                </div>\r\n                <div class=\"alt-body\">\r\n                    <div class=\"alt-host\">\r\n                        <compose\r\n                            repeat.for=\"vi of altViewInstances\"\r\n                            view.bind=\"vi.viewTemplate\"\r\n                            view-model.bind=\"vi.viewModel\"\r\n                            model.bind=\"vi.viewState\"\r\n                            show.bind=\"vi === $parent.altActiveViewInstance\">\r\n                        </compose>\r\n                    </div>\r\n                </div>\r\n            </div>\r\n\r\n        </div>\r\n    </div>\r\n</template>"; });
-define('text!shell/shell.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n}\n.body {\n  display: flex;\n  flex-direction: row;\n  flex: 1 0;\n}\n.nav {\n  display: flex;\n  flex-direction: column;\n  background-color: lightseagreen;\n  width: 200px;\n}\n.nav-body {\n  margin: 0;\n  padding: 0;\n  flex: 1 0;\n  position: relative;\n  overflow: hidden;\n}\n.nav-toolbar {\n  background-color: cadetblue;\n}\n.nav-host {\n  position: absolute;\n  top: 0;\n  left: 0;\n  bottom: 0;\n  right: 0;\n  margin: 0;\n  padding: 0;\n  overflow: auto;\n}\n.body2 {\n  display: flex;\n  flex-direction: column;\n  flex: 1 0;\n}\n.main {\n  display: flex;\n  flex-direction: column;\n  flex: 2 0;\n  background-color: aquamarine;\n}\n.main-toolbar {\n  background-color: cadetblue;\n}\n.main-body {\n  position: relative;\n  overflow: hidden;\n  margin: 0;\n  padding: 0;\n  flex: 1 0;\n}\n.main-host {\n  position: absolute;\n  top: 0;\n  left: 0;\n  bottom: 0;\n  right: 0;\n  overflow: auto;\n}\n.alt {\n  display: flex;\n  flex-direction: column;\n  flex: 1 0;\n  background-color: darkcyan;\n}\n.alt-toolbar {\n  background-color: cadetblue;\n}\n.alt-body {\n  position: relative;\n  overflow: hidden;\n  margin: 0;\n  padding: 0;\n  flex: 1 0;\n}\n.alt-host {\n  position: absolute;\n  top: 0;\n  left: 0;\n  bottom: 0;\n  right: 0;\n  overflow: auto;\n}\n"; });
+define('text!app.css', ['module'], function(module) { module.exports = "router-view {\n  flex: 1 0;\n  display: flex;\n  flex-direction: column;\n}\n"; });
 define('text!shell/view-instance-toolbar.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./view-instance-toolbar.css\"></require>\r\n\r\n    <div class=\"btn-group\" data-toggle=\"buttons\">\r\n        <label repeat.for=\"vi of viewInstances\" class=\"btn btn-primary ${vi === $parent.activeViewInstance ? 'active' : ''}\">\r\n            <input type=\"radio\" name=\"vi\" model.bind=\"vi\" checked.bind=\"$parent.activeViewInstance\">\r\n            <i class=\"fa fa-plug\"></i>\r\n            <span if.bind=\"$parent.showTitle\">${vi.title}</span>\r\n            <i class=\"fa fa-times\" click.trigger=\"removeItem(vi, $index, $parent.viewInstances)\"></i>\r\n        </label>\r\n    </div>\r\n\r\n</template>\r\n"; });
+define('text!shell/shell.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n}\n.body {\n  display: flex;\n  flex-direction: row;\n  flex: 1 0;\n}\n.nav {\n  display: flex;\n  flex-direction: column;\n  background-color: lightseagreen;\n  width: 200px;\n}\n.nav-body {\n  margin: 0;\n  padding: 0;\n  flex: 1 0;\n  position: relative;\n  overflow: hidden;\n}\n.nav-toolbar {\n  background-color: cadetblue;\n}\n.nav-host {\n  position: absolute;\n  top: 0;\n  left: 0;\n  bottom: 0;\n  right: 0;\n  margin: 0;\n  padding: 0;\n  overflow: auto;\n}\n.body2 {\n  display: flex;\n  flex-direction: column;\n  flex: 1 0;\n}\n.main {\n  display: flex;\n  flex-direction: column;\n  flex: 2 0;\n  background-color: aquamarine;\n}\n.main-toolbar {\n  background-color: cadetblue;\n}\n.main-body {\n  position: relative;\n  overflow: hidden;\n  margin: 0;\n  padding: 0;\n  flex: 1 0;\n}\n.main-host {\n  position: absolute;\n  top: 0;\n  left: 0;\n  bottom: 0;\n  right: 0;\n  overflow: auto;\n}\n.alt {\n  display: flex;\n  flex-direction: column;\n  flex: 1 0;\n  background-color: darkcyan;\n}\n.alt-toolbar {\n  background-color: cadetblue;\n}\n.alt-body {\n  position: relative;\n  overflow: hidden;\n  margin: 0;\n  padding: 0;\n  flex: 1 0;\n}\n.alt-host {\n  position: absolute;\n  top: 0;\n  left: 0;\n  bottom: 0;\n  right: 0;\n  overflow: auto;\n}\n"; });
+define('text!state/new-session.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./new-session.css\"></require>\r\n    <div class=\"header\">\r\n        <h1>New Session on ${hostId}</h1>\r\n    </div>\r\n    <div class=\"body\">\r\n        <div repeat.for=\"pakRepo of pakDirectory.pakRepositories\">\r\n            <h3>${pakRepo.uniqueId}</h3>\r\n            <p repeat.for=\"pakId of pakRepo.pakList\">&nbsp;&nbsp;&nbsp;&nbsp;<label><input type=\"checkbox\" value.bind=\"pakId\"> ${pakId}</label></p>\r\n        </div>\r\n    </div>\r\n</template>"; });
 define('text!shell/state-repository-chooser.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  flex: 1 1;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
 define('text!shell/view-instance-toolbar.css', ['module'], function(module) { module.exports = ""; });
-define('text!state/new-session.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./new-session.css\"></require>\r\n    <div class=\"header\">\r\n        <h1>New Session on ${hostId}</h1>\r\n    </div>\r\n    <div class=\"body\">\r\n        <div repeat.for=\"pakRepo of pakDirectory.pakRepositories\">\r\n            <h3>${pakRepo.uniqueId}</h3>\r\n            <p repeat.for=\"pakId of pakRepo.pakList\">&nbsp;&nbsp;&nbsp;&nbsp;<label><input type=\"checkbox\" value.bind=\"pakId\"> ${pakId}</label></p>\r\n        </div>\r\n    </div>\r\n</template>"; });
 define('text!state/state-repository-chooser.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./state-repository-chooser.css\"></require>\r\n    <div class=\"header\">\r\n        <h1>Plotter Host</h1>\r\n        <h3>Choose Plotter Host:</h3>\r\n        <div class=\"input-group input-group-lg\">\r\n            <select class=\"form-control\" value.bind=\"state\">\r\n                <option model.bind=\"ss\" repeat.for=\"ss of states\">${ss.uniqueId}</option>\r\n            </select>\r\n            <span class=\"input-group-addon\" click.trigger=\"choose()\">\r\n                <i class=\"fa fa-arrow-circle-right fa-lg\"></i>\r\n            </span>\r\n        </div>\r\n    </div>\r\n    <div class=\"body\"></div>\r\n</template>"; });
 define('text!state/new-session.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  flex: 1 1;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
 define('text!state/state-session-chooser.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./state-repository-chooser.css\"></require>\r\n    <div class=\"header\">\r\n        <h1>Session Chooser (${stateRepoUniqueId}) </h1>\r\n        <p>${message} </p>\r\n        <h3>Choose Session:</h3>\r\n        <div class=\"input-group input-group-lg\">\r\n            <select class=\"form-control\" value.bind=\"sessionId\">\r\n                <option value.bind=\"''\">(New Session)</option>\r\n                <option value.bind=\"s\" repeat.for=\"s of sessionList\">${s}</option>\r\n            </select>\r\n            <span class=\"input-group-addon\" click.trigger=\"choose()\">\r\n                <i class=\"fa fa-arrow-circle-right fa-lg\"></i>\r\n            </span>\r\n        </div>\r\n\r\n    </div>\r\n    <div class=\"body\"></div>\r\n</template>\r\n"; });
-define('text!state/state-repository-chooser.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  flex: 1 1;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
 define('text!views/globe/globe.html', ['module'], function(module) { module.exports = "<template>\r\n    <h1>Globe</h1>\r\n</template>\r\n"; });
+define('text!state/state-repository-chooser.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  flex: 1 1;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
+define('text!views/one/one.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./one.css\"></require>\r\n    <h1>One (local)</h1>\r\n    <p class=\"wide\">${model.a}</p>\r\n    <select value.bind=\"targetPane\">\r\n        <option repeat.for=\"p of ['nav', 'main', 'alt']\" value.bind=\"p\">${p}</option>\r\n    </select>\r\n    <input type=\"text\" value.bind=\"targetViewModel\" />\r\n    <input type=\"text\" value.bind=\"targetMessage\" />\r\n    <button click.trigger=\"launchTarget()\">Launch</button>\r\n</template>"; });
 define('text!state/state-session-chooser.css', ['module'], function(module) { module.exports = ".header {\n  background-color: mediumaquamarine;\n  padding: 10px;\n}\n.body {\n  flex: 1 1;\n  padding: 10px;\n  background-color: darkcyan;\n}\n"; });
 define('text!views/one/one.css', ['module'], function(module) { module.exports = ""; });
-define('text!views/one/one.html', ['module'], function(module) { module.exports = "<template>\r\n    <require from=\"./one.css\"></require>\r\n    <h1>One (local)</h1>\r\n    <p class=\"wide\">${model.a}</p>\r\n    <select value.bind=\"targetPane\">\r\n        <option repeat.for=\"p of ['nav', 'main', 'alt']\" value.bind=\"p\">${p}</option>\r\n    </select>\r\n    <input type=\"text\" value.bind=\"targetViewModel\" />\r\n    <input type=\"text\" value.bind=\"targetMessage\" />\r\n    <button click.trigger=\"launchTarget()\">Launch</button>\r\n</template>"; });
-define('text!views/two/two.html', ['module'], function(module) { module.exports = "<template>\r\n    <h1>two</h1>\r\n</template>"; });
 define('text!views/three/three.html', ['module'], function(module) { module.exports = "<template>\r\n    <h1>three</h1>\r\n</template>"; });
+define('text!views/two/two.html', ['module'], function(module) { module.exports = "<template>\r\n    <h1>two</h1>\r\n</template>"; });
 //# sourceMappingURL=app-bundle.js.map

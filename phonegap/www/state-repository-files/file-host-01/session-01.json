@@ -1,0 +1,20 @@
+{
+    "locked": true,
+    "uniqueId": "session-01",
+    "activePaks": [
+        {
+            "locked": true,
+            "uniqueId": "a-pak1",
+            "pakHostId": "pak-host-01",
+            "pakId": "pak-01",
+            "viewInstances": [
+                { "uniqueId": "vi-01", "title": "One", "viewId": "view1", "paneType": "nav", "viewModel": "../views/one/one", "viewState": { "a": "hello, world (one)" }},
+                { "uniqueId": "vi-02", "title": "Two", "viewId": "view2", "paneType": "main", "viewModel": "../views/two/two", "viewState": "{ a: 'hello, world (two)' }"},
+                { "uniqueId": "vi-03", "title": "Three", "viewId": "view3", "paneType": "main", "viewModel": "../views/three/three", "viewState": "{ a: 'hello, world (three)' }"},
+                { "uniqueId": "vi-05", "title": "Remote Test01", "viewId": "view3", "paneType": "main", "viewModel": "http://cmichaelgraham.github.io/plotter/views/test01/test01.js", "viewState": "{ a: 'hello, world (three)' }"},
+                { "uniqueId": "vi-05", "title": "Test02", "viewId": "view3", "paneType": "alt", "viewTemplate": "http://cmichaelgraham.github.io/plotter/views/test02/test02.html", "viewState": "{ a: 'hello, world (three)' }"},
+                { "uniqueId": "vi-04", "title": "One", "viewId": "view2", "paneType": "alt", "viewModel": "../views/one/one", "viewState": { "a": "hello, world (one-for vi-04)" }}
+            ]
+        }
+    ]
+}

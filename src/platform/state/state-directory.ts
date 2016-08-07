@@ -2,6 +2,7 @@ import { HttpClient } from 'aurelia-fetch-client';
 import { StateRepository, StateRepositoryJSON  } from './state-repository';
 import { StateRepositoryFile } from './state-repository-file';
 import { ElectronHelper } from '../electron-helper';
+import { PhoneGapHelper } from '../phone-gap-helper';
 
 export class StateDirectory {
     public static fromJSON(json: StateDirectoryJSON): StateDirectory {
@@ -13,7 +14,10 @@ export class StateDirectory {
             switch (stateRepositoryJSON.stateRepositoryType) {
                 case 'File':
                 {
-                    let stateRepository = new StateRepositoryFile(new HttpClient(), new ElectronHelper());
+                    let stateRepository = new StateRepositoryFile(
+                        new HttpClient(),
+                        new ElectronHelper(),
+                        new PhoneGapHelper());
                     stateRepository.locked = stateRepositoryJSON.locked;
                     stateRepository.uniqueId = stateRepositoryJSON.uniqueId;
                     stateRepository.stateRepositoryType = stateRepositoryJSON.stateRepositoryType;

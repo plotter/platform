@@ -1,0 +1,15 @@
+{
+    "locked": true,
+    "uniqueId": "session-02",
+    "activePaks": [
+        {
+            "locked": true,
+            "uniqueId": "a-pak1",
+            "pakHostId": "pak-host-01",
+            "pakId": "pak-01",
+            "viewInstances": [
+                { "uniqueId": "vi-05", "viewId": "view3", "paneType": "main", "viewModel": "http://cmichaelgraham.github.io/plotter/views/test01/test01.js", "viewState": "{ a: 'hello, world (three)' }"}
+            ]
+        }
+    ]
+}
