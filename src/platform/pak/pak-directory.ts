@@ -3,6 +3,7 @@ import { PakRepository, PakRepositoryJSON } from './pak-repository';
 import { PakRepositoryFile } from './pak-repository-file';
 import { StateRepository } from '../state/state-repository';
 import { ElectronHelper } from '../electron-helper';
+import { PhoneGapHelper } from '../phone-gap-helper';
 
 export class PakDirectory {
     public static fromJSON(json: PakDirectoryJSON): PakDirectory {
@@ -14,7 +15,10 @@ export class PakDirectory {
             switch (pakRepositoryJSON.pakRepositoryType) {
                 case 'File':
                     {
-                        let pakRepository = new PakRepositoryFile(new HttpClient(), new ElectronHelper());
+                        let pakRepository = new PakRepositoryFile(
+                            new HttpClient(),
+                            new ElectronHelper(),
+                            new PhoneGapHelper());
                         pakRepository.locked = pakRepositoryJSON.locked;
                         pakRepository.uniqueId = pakRepositoryJSON.uniqueId;
                         pakRepository.pakRepositoryType = pakRepositoryJSON.pakRepositoryType;

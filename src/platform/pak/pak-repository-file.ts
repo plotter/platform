@@ -4,8 +4,9 @@ import { PakRepository, PakRepositoryType } from './pak-repository';
 import { Pak } from './pak';
 import { PakDirectory } from './pak-directory';
 import { ElectronHelper } from '../electron-helper';
+import { PhoneGapHelper } from '../phone-gap-helper';
 
-@inject(HttpClient, ElectronHelper)
+@inject(HttpClient, ElectronHelper, PhoneGapHelper)
 export class PakRepositoryFile implements PakRepository {
     public locked = false;
     public uniqueId = 'state-provider';
@@ -17,7 +18,10 @@ export class PakRepositoryFile implements PakRepository {
     private pakMap = new Map<string, Pak>();
     private pakPromiseMap = new Map<string, Promise<Pak>>();
 
-    constructor(private httpClient: HttpClient, private electronHelper: ElectronHelper) { }
+    constructor(
+        private httpClient: HttpClient,
+        private electronHelper: ElectronHelper,
+        private phoneGapHelper: PhoneGapHelper) { }
 
     public getPak = (pakId): Promise<Pak> => {
 
@@ -46,6 +50,17 @@ export class PakRepositoryFile implements PakRepository {
                     resolve(pak);
                     return;
                 });
+            } else if (that.phoneGapHelper.isPhoneGap) {
+                let pakFile = `${that.path}/${that.uniqueId}/${pakId}.json`;
+
+                that.phoneGapHelper.readFromFile(`${pakFile}`)
+                    .then((o: any) => {
+                        let pak = Pak.fromJSON(o);
+                        pak.pakRepository = that;
+                        that.pakMap.set(pakId, pak);
+                        resolve(pak);
+                    })
+                    .catch(r => reject(r));
             } else {
 
                 that.httpClient.fetch(`${that.path}/${that.uniqueId}/${pakId}.json`)
@@ -85,9 +100,18 @@ export class PakRepositoryFile implements PakRepository {
                     let data = JSON.parse(stringData);
 
                     that.pakList = data.pakList;
-                    resolve(<string[]> data.pakList);
+                    resolve(<string[]>data.pakList);
                     return;
                 });
+            } else if (that.phoneGapHelper.isPhoneGap) {
+                let pakListFile = `${that.path}/${that.uniqueId}/pak-list.json`;
+
+                that.phoneGapHelper.readFromFile(`${pakListFile}`)
+                    .then((o: any) => {
+                        that.pakList = o.pakList;
+                        resolve(<string[]>o.pakList);
+                    })
+                    .catch(r => reject(r));
             } else {
 
                 that.httpClient.fetch(`${that.path}/${that.uniqueId}/pak-list.json`)
@@ -96,7 +120,7 @@ export class PakRepositoryFile implements PakRepository {
                     })
                     .then(data => {
                         that.pakList = data.pakList;
-                        resolve(<string[]> data.pakList);
+                        resolve(<string[]>data.pakList);
                     })
                     .catch(reason => {
                         reject(new Error(`fetch pak list failed: reason: \r\n\r\n${reason}`));

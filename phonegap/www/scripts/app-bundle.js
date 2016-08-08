@@ -104,13 +104,14 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-define('platform/pak/pak-repository-file',["require", "exports", 'aurelia-framework', 'aurelia-fetch-client', './pak', '../electron-helper'], function (require, exports, aurelia_framework_1, aurelia_fetch_client_1, pak_1, electron_helper_1) {
+define('platform/pak/pak-repository-file',["require", "exports", 'aurelia-framework', 'aurelia-fetch-client', './pak', '../electron-helper', '../phone-gap-helper'], function (require, exports, aurelia_framework_1, aurelia_fetch_client_1, pak_1, electron_helper_1, phone_gap_helper_1) {
     "use strict";
     var PakRepositoryFile = (function () {
-        function PakRepositoryFile(httpClient, electronHelper) {
+        function PakRepositoryFile(httpClient, electronHelper, phoneGapHelper) {
             var _this = this;
             this.httpClient = httpClient;
             this.electronHelper = electronHelper;
+            this.phoneGapHelper = phoneGapHelper;
             this.locked = false;
             this.uniqueId = 'state-provider';
             this.pakRepositoryType = 'File';
@@ -137,6 +138,17 @@ define('platform/pak/pak-repository-file',["require", "exports", 'aurelia-framew
                             resolve(pak);
                             return;
                         });
+                    }
+                    else if (that.phoneGapHelper.isPhoneGap) {
+                        var pakFile = that.path + "/" + that.uniqueId + "/" + pakId + ".json";
+                        that.phoneGapHelper.readFromFile("" + pakFile)
+                            .then(function (o) {
+                            var pak = pak_1.Pak.fromJSON(o);
+                            pak.pakRepository = that;
+                            that.pakMap.set(pakId, pak);
+                            resolve(pak);
+                        })
+                            .catch(function (r) { return reject(r); });
                     }
                     else {
                         that.httpClient.fetch(that.path + "/" + that.uniqueId + "/" + pakId + ".json")
@@ -174,6 +186,15 @@ define('platform/pak/pak-repository-file',["require", "exports", 'aurelia-framew
                             return;
                         });
                     }
+                    else if (that.phoneGapHelper.isPhoneGap) {
+                        var pakListFile = that.path + "/" + that.uniqueId + "/pak-list.json";
+                        that.phoneGapHelper.readFromFile("" + pakListFile)
+                            .then(function (o) {
+                            that.pakList = o.pakList;
+                            resolve(o.pakList);
+                        })
+                            .catch(function (r) { return reject(r); });
+                    }
                     else {
                         that.httpClient.fetch(that.path + "/" + that.uniqueId + "/pak-list.json")
                             .then(function (response) {
@@ -191,15 +212,15 @@ define('platform/pak/pak-repository-file',["require", "exports", 'aurelia-framew
             };
         }
         PakRepositoryFile = __decorate([
-            aurelia_framework_1.inject(aurelia_fetch_client_1.HttpClient, electron_helper_1.ElectronHelper), 
-            __metadata('design:paramtypes', [aurelia_fetch_client_1.HttpClient, electron_helper_1.ElectronHelper])
+            aurelia_framework_1.inject(aurelia_fetch_client_1.HttpClient, electron_helper_1.ElectronHelper, phone_gap_helper_1.PhoneGapHelper), 
+            __metadata('design:paramtypes', [aurelia_fetch_client_1.HttpClient, electron_helper_1.ElectronHelper, phone_gap_helper_1.PhoneGapHelper])
         ], PakRepositoryFile);
         return PakRepositoryFile;
     }());
     exports.PakRepositoryFile = PakRepositoryFile;
 });
 
-define('platform/pak/pak-directory',["require", "exports", 'aurelia-fetch-client', './pak-repository-file', '../electron-helper'], function (require, exports, aurelia_fetch_client_1, pak_repository_file_1, electron_helper_1) {
+define('platform/pak/pak-directory',["require", "exports", 'aurelia-fetch-client', './pak-repository-file', '../electron-helper', '../phone-gap-helper'], function (require, exports, aurelia_fetch_client_1, pak_repository_file_1, electron_helper_1, phone_gap_helper_1) {
     "use strict";
     var PakDirectory = (function () {
         function PakDirectory() {
@@ -212,7 +233,7 @@ define('platform/pak/pak-directory',["require", "exports", 'aurelia-fetch-client
                 switch (pakRepositoryJSON.pakRepositoryType) {
                     case 'File':
                         {
-                            var pakRepository = new pak_repository_file_1.PakRepositoryFile(new aurelia_fetch_client_1.HttpClient(), new electron_helper_1.ElectronHelper());
+                            var pakRepository = new pak_repository_file_1.PakRepositoryFile(new aurelia_fetch_client_1.HttpClient(), new electron_helper_1.ElectronHelper(), new phone_gap_helper_1.PhoneGapHelper());
                             pakRepository.locked = pakRepositoryJSON.locked;
                             pakRepository.uniqueId = pakRepositoryJSON.uniqueId;
                             pakRepository.pakRepositoryType = pakRepositoryJSON.pakRepositoryType;
@@ -535,7 +556,7 @@ define('platform/state/state-repository-file',["require", "exports", 'aurelia-fr
                         that.stateSessionMap.set(sessionId, stateSession);
                         resolve(stateSession);
                     })
-                        .catch(function (r) { return reject(r.toString()); });
+                        .catch(function (r) { return reject(r); });
                 }
                 else {
                     that.httpClient.fetch(that.path + "/" + that.uniqueId + "/" + sessionId + ".json")

@@ -127,7 +127,7 @@ export class StateRepositoryFile implements StateRepository {
                         that.stateSessionMap.set(sessionId, stateSession);
                         resolve(stateSession);
                     })
-                    .catch(r => reject(r.toString()));
+                    .catch(r => reject(r));
             } else {
 
                 that.httpClient.fetch(`${that.path}/${that.uniqueId}/${sessionId}.json`)
